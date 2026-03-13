@@ -1,6 +1,6 @@
 from memory import Memory, IO
 import termmagic
-from execute import Executor
+from execute import Executor, OpcodeFault
 import time
 from instructions import Instructions
 
@@ -22,6 +22,8 @@ class Emulator:
         self.running = True
     
     def get(self,id:int) -> int:
+        if id >= len(self.registers):
+            raise OpcodeFault
         return self.registers[id]
     def set(self,reg:int,val:int):
         self.registers[reg] = val
@@ -60,14 +62,10 @@ if __name__ == "__main__":
     termmagic.disable_buffering()
     emulator = Emulator()
 
-    testCode = bytearray([
-        0x12, 0x0B, 0x01, 0x00,
-        0x13, 0x10,
-        0xff,
-    ])
+    code = open("main.bin","rb").read()
 
     try:
-        emulator.main(testCode)
+        emulator.main(code)
     finally:
         termmagic.reset()
     

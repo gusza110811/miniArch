@@ -11,7 +11,7 @@ class Executor:
     def execute(self, inst:insts, instvariant:int):
         emulator = self.emulator
         fetchs = self.emulator.fetchs
-        ram = emulator.memory
+        memory = emulator.memory
         io = emulator.io
         get = emulator.get
         set = emulator.set
@@ -20,28 +20,27 @@ class Executor:
         # instruction variants (for those that supports it)
         # bits 0-3: source
         # bits 4-7: dest
-        # source and dest as values:
+        # source and dest as direct value:
         # 0: ax, bx, cx, dx
         # 4: cs, ds, ss, es
         # 8: ip, sp, bp
-        # source and dest as address:
+        # source and dest as dereference:
         #  0: cs+bx, ds+bx, ss+bx, es+bx
-        #  4: cs+imm, ds+imm, ss+imm, es+imm
-        #  8: ip+bx, sp+bx, bp+bx
+        #  4: ip+bx, sp+bx, bp+bx, ..
+        #  8: cs+imm, ds+imm, ss+imm, es+imm
         # 11: ip+imm, sp+imm, bp+imm
         if not inst in instnovariant:
             source = instvariant & 0xF
             dest = instvariant >> 4
-            if 0 >= source > 10:
-                raise OpcodeFault
-            if 0 >= dest > 10:
-                raise OpcodeFault
 
         match inst:
             case insts.rmov:
                 set(dest,get(source))
-            
-            case insts.ldi:
+            case insts.ldi4:
+                set(dest,source)
+            case insts.ldi8:
+                set(dest,fetchs(1))
+            case insts.ldi16:
                 set(dest,fetchs(2))
 
             case insts.halt:

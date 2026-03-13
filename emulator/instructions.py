@@ -1,13 +1,17 @@
 import enum
 
 class Instructions(enum.Enum):
-    ld   = 0x10
-    st   = 0x11
-    ldi  = 0x12
-    rmov = 0x13
-    inp  = 0x14
-    out  = 0x15
-    movb = 0x19
-    movw = 0x1A
+    rmov = 0x10
+    ldi4 = 0x11
+    ldi8 = 0x12
+    ldi16= 0x13
+    stb  = 0x18
+    ldb  = 0x19
+    stw  = 0x1A
+    ldw  = 0x1B
+    inp  = 0x1C
+    out  = 0x1D
+    movb = 0x1E
+    movw = 0x1F
 
     halt= 0xff
