@@ -11,6 +11,9 @@ class Rom:
             return self.data[address]
         else:
             return 0
+    
+    def loadw(self, address:int) -> int:
+        return self.loadb(address) | (self.loadb(address+1) << 8)
 
 class Ram:
     def __init__(self):
@@ -20,7 +23,14 @@ class Ram:
         return self.values[address]
 
     def storeb(self, address:int, value:int):
-        self.values[address] = value
+        self.values[address] = value&0xff
+    
+    def loadw(self, address:int) -> int:
+        return self.loadb(address) | (self.loadb(address+1) << 8)
+
+    def storew(self, address:int, value:int):
+        self.storeb(address,value)
+        self.storeb(address,value>>8)
 
 class Memory:
     def __init__(self,rom:bytearray):
@@ -28,6 +38,7 @@ class Memory:
         self.rom = Rom(rom)
 
         self.storeb = self.ram.storeb
+        self.storew = self.ram.storew
     
     def loadb(self,address:int):
         if address >= 0xF0000:
@@ -35,8 +46,15 @@ class Memory:
         else:
             return self.ram.loadb(address)
     
+    def loadw(self,address:int):
+        if address >= 0xF0000:
+            return self.rom.loadw(address-0xF0000)
+        else:
+            return self.ram.loadw(address)
+    
     def shadow(self):
         self.loadb = self.ram.loadb
+        self.loadw = self.ram.loadw
 
 class Port:
     def __init__(self):pass

@@ -49,7 +49,7 @@ class Assembler:
         return out
 
 def test():
-    test = open(os.path.join(__dir__,"main.asm")).read()
+    test = open("main.asm").read()
 
     assembler = Assembler()
     out = assembler.main(test)

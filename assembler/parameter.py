@@ -1,5 +1,5 @@
 class BaseParameter:
-    def __init__(self, value: int, length=2):
+    def __init__(self, value: int, length=1):
         self.value = value
         self.length= length
         "bytes, in powers of twos"
@@ -9,7 +9,7 @@ class BaseParameter:
 
 class Immediate(BaseParameter):
     def __repr__(self):
-        return f"ImmediateParameter(self.value)"
+        return f"Immediate({self.value})"
     
     def get(self,size=2,signed=False):
         if size == 0:
@@ -18,10 +18,10 @@ class Immediate(BaseParameter):
             return self.value.to_bytes(size, byteorder='little', signed=signed)
 
 class Register(BaseParameter):
-    def __init__(self, value, length=2):
+    def __init__(self, value, length=1):
         super().__init__(value, length)
     def __repr__(self):
-        return f"RegisterParameter({self.value})"
+        return f"Register({self.value})"
 
 class Dereference(BaseParameter):
     def __init__(self, value:int, length:int, base:int):
@@ -29,7 +29,7 @@ class Dereference(BaseParameter):
         self.length = length
         self.base = base
     def __repr__(self):
-        return f"DereferenceParameter({self.value})"
+        return f"Dereference({self.base} : {self.value})"
     def get(self,size=2):
         return self.value.to_bytes(size, byteorder='little')
 
@@ -38,4 +38,4 @@ class IndirectDereference(BaseParameter):
         super().__init__(value)
         self.length = length
     def __repr__(self):
-        return f"IndirectDereferenceParameter(*{self.base}  {self.length})"
+        return f"IndirectDereference(*{self.value} : BX)"

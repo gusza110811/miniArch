@@ -319,13 +319,13 @@ class Transformer(t):
         def __repr__(self):
             return f"deref {self.base} {self.addr}"
         def dry_eval(self):
-            return parameter.Dereference(0,self.size,5)
+            return parameter.Dereference(0,self.size,1)
         def eval(self, context):
             addr = self.addr.eval(context)
             if self.base:
-                base = self.base.eval(context)
+                base = self.base.eval()
             else:
-                base = 5
+                base = 1
             return parameter.Dereference(addr,self.size,base)
         def get_first_token(self):
             if self.children[0]:
@@ -471,7 +471,7 @@ class Transformer(t):
     
     class BASES(Leaf):
         def eval(self):
-            return ['cs','ds','ss','es'
+            return ['cs','ds','ss','es',
                     'ip','sp','bp'].index(self.value.lower())
 
     class STRING(Leaf):

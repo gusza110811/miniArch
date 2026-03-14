@@ -60,20 +60,35 @@ class Mov(Instruction):
         destL = dest.length
         length = None
 
-        if srcL and destL and srcL != destL and srcT != Register and destT != Register:
-            return Err("conflicting data length",0,f"{destL} bytes vs {srcL} bytes")
+        datalen = list("bwdq")
 
-        if srcL:
+        if srcL != None and destL != None and srcL != destL and srcT != Register and destT != Register:
+            return Err("conflicting data length",0,f"{datalen.index(destL)} vs {datalen.index(srcL)}")
+
+        if srcT == Register:
             length = srcL
-        if destL and not (destT != Register or srcL):
+            if destL != None:
+                length = destL
+        elif destT == Register:
             length = destL
+            if srcL != None:
+                length = srcL
+        else:
+            if srcL != None:
+                length = srcL
+            if destL != None:
+                length = destL
         
-        if not length:
+        if length == None:
             return Err("ambiguous data length",0)
 
         out = bytearray()
 
+        if destT == Immediate:
+            return Err("bad destination type",0,"cannot save to immediate value")
+
         if destT == Register:
+            dest:Register
             if srcT == Register:
                 out.append(0x10)
                 out.append((destval<<4)|srcval)
@@ -92,7 +107,31 @@ class Mov(Instruction):
                     out.append(destval<<4)
                     out.extend(val)
             elif srcT == Dereference:
-                out.append(0x19)
+                src:Dereference
+                if length == 0:
+                    out.append(0x19)
+                else:
+                    out.append(0x1B)
+                base = src.base
+                offset = src.value
+                target = dest.value
+                descriptor = (target << 4) | (base+8)
+                out.append(descriptor)
+                out.extend(offset.to_bytes(2,'little',signed=True))
+
+        elif destT == Dereference:
+            dest:Dereference
+            if srcT == Register:
+                if length == 0:
+                    out.append(0x18)
+                else:
+                    out.append(0x1A)
+                base = dest.base
+                offset = dest.value
+                source = src.value
+                descriptor = ((base+8) << 4)|(source)
+                out.append(descriptor)
+                out.extend(offset.to_bytes(2,'little',signed=True))
         
         if out:
             return bytes(out)

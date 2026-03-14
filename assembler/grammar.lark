@@ -19,8 +19,8 @@ instruction: IDENTIFIER (parameter ("," parameter)?)? "\n"
 
 register: REGISTER
 immediate: expr
-?address: "[" [ADDR_SIZE] [BASES "+"] "bx" "]" -> indirect_addr
-    | "[" [ADDR_SIZE] [BASES "+"] expr "]" -> direct_addr
+?address: "[" [ADDR_SIZE " "] [BASES "+"] "bx"i "]" -> indirect_addr
+    | "[" [ADDR_SIZE " "] [BASES "+"] expr "]" -> direct_addr
 
 data_block: "data " [IDENTIFIER] "{" data_statement* "}"
 
@@ -85,14 +85,14 @@ symbol: IDENTIFIER
 IDENTIFIER: /[a-zA-Z_][a-zA-Z0-9_]*/
 COMMENT: ";" /[^\n]*/
 
-REGISTER: "ax" | "bx" | "cx" | "dx"
-    | "cs" | "ds" | "ss" | "es"
-    | "ip" | "sp" | "ip"
+REGISTER: "ax"i | "bx"i | "cx"i | "dx"i
+    | "cs"i | "ds"i | "ss"i | "es"i
+    | "ip"i | "sp"i | "ip"i
 
-BASES: "cs" | "ds" | "ss" | "es"
-    | "ip" | "sp" | "ip"
+BASES: "cs"i | "ds"i | "ss"i | "es"i
+    | "ip"i | "sp"i | "ip"i
 
-ADDR_SIZE: "b"|"w"|"d"|"q"
+ADDR_SIZE: "b"|"w"
 
 DECIMAL: /[0-9_]+/
 BINARY: /[01_]+/

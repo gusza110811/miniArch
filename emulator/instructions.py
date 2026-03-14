@@ -11,7 +11,5 @@ class Instructions(enum.Enum):
     ldw  = 0x1B
     inp  = 0x1C
     out  = 0x1D
-    movb = 0x1E
-    movw = 0x1F
 
     halt= 0xff

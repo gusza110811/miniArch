@@ -26,7 +26,7 @@ class Executor:
         # 8: ip, sp, bp
         # source and dest as dereference:
         #  0: cs+bx, ds+bx, ss+bx, es+bx
-        #  4: ip+bx, sp+bx, bp+bx, ..
+        #  4: ip+bx, sp+bx, bp+bx, (unused)
         #  8: cs+imm, ds+imm, ss+imm, es+imm
         # 11: ip+imm, sp+imm, bp+imm
         if not inst in instnovariant:
@@ -42,6 +42,35 @@ class Executor:
                 set(dest,fetchs(1))
             case insts.ldi16:
                 set(dest,fetchs(2))
+            
+            case insts.ldb:
+                if source < 8:
+                    srcval = memory.loadb(get(source+4)+get(1))
+                elif source <= 13:
+                    addr = (get(source-4)<<4)+fetchs(2)
+                    srcval = memory.loadb(addr)
+                else: raise OpcodeFault
+                set(dest,srcval)
+            case insts.ldw:
+                if source < 8:
+                    srcval = memory.loadw(get(source+4)+get(1))
+                elif source <= 13:
+                    addr = (get(source-4)<<4)+fetchs(2)
+                    srcval = memory.loadw(addr)
+                else: raise OpcodeFault
+                set(dest,srcval)
+            case insts.stb:
+                if dest < 8:
+                    addr = get(dest+4)+get(1)
+                elif dest <= 13:
+                    addr = (get(dest-4)<<4)+fetchs(2)
+                memory.storeb(addr,get(source))
+            case insts.stw:
+                if dest < 8:
+                    addr = get(dest+4)+get(1)
+                elif dest <= 13:
+                    addr = (get(dest-4)<<4)+fetchs(2)
+                memory.storew(addr,get(source))
 
             case insts.halt:
                 emulator.running = False
