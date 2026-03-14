@@ -74,7 +74,7 @@ class Emulator:
         items = 0
         print("\nRom:")
         for idx, val in enumerate(self.memory.rom.data):
-            print(f"{idx:04X}: {val:2X}",end="  ")
+            print(f"{idx:04X}: {val:02X}",end="  ")
             items += 1
             if items == itemperline:
                 print()

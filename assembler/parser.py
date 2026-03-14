@@ -202,12 +202,11 @@ class Transformer(t):
             for child in self.args:
                 processed_args.append(child.eval(context))
             self.out = instruction.Instruction.from_str(self.command, processed_args).get(self.position)
-
             if isinstance(self.out, instruction.Err):
                 err_begin = self.args[self.out.pos].get_first_token()
                 err_end = self.args[self.out.pos].get_last_token()
                 raise ParseErr(self.out.msg, err_begin.line-1, err_begin.column-1,err_end.end_column-1,self.out.hint)
-        
+
         def emit(self):
             return self.out
 
@@ -311,13 +310,14 @@ class Transformer(t):
             super().__init__(value)
             self.size:Transformer.ADDR_SIZE = value[0]
             self.base:Transformer.BASES = value[1]
-            self.addr:Transformer.expr = value[2]
+            self.sign = value[2]
+            self.addr:Transformer.expr = value[3]
             if self.size:
                 self.size = self.size.eval()
             else:
                 self.size = None
         def __repr__(self):
-            return f"deref {self.base} {self.addr}"
+            return f"deref {self.base} {self.sign} {self.addr}"
         def dry_eval(self):
             return parameter.Dereference(0,self.size,1)
         def eval(self, context):
@@ -338,20 +338,19 @@ class Transformer(t):
             self.size:Transformer.ADDR_SIZE|None = value[0]
             self.base:Transformer.REGISTER = value[1]
         def __repr__(self):
-            return f"deref indirect"
+            return f"deref {self.base} + BX"
         def dry_eval(self):
-            return parameter.IndirectDereference(0)
+            return parameter.IndirectDereference(0,0)
         def eval(self, context):
-            pointer = self.pointer.eval
             if self.size:
                 size = self.size.eval()
             else:
                 size = None
-            if self.offset:
-                offset = self.offset.eval()
+            if self.base:
+                base = self.base.eval()
             else:
-                offset = 0
-            return parameter.IndirectDereference(pointer,size,offset)
+                base = 1
+            return parameter.IndirectDereference(base,size)
 
     class constantdef(Branch):
         def __init__(self, value):
@@ -468,6 +467,10 @@ class Transformer(t):
             return ['ax','bx','cx','dx'
                     'cs','ds','ss','es'
                     'ip','sp','bp'].index(self.value.lower())
+    
+    class SIGN(Leaf):
+        def eval(self):
+            return 1 if self.value == "+" else -1
     
     class BASES(Leaf):
         def eval(self):

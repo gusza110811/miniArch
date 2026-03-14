@@ -85,10 +85,9 @@ class Mov(Instruction):
         out = bytearray()
 
         if destT == Immediate:
-            return Err("bad destination type",0,"cannot save to immediate value")
+            return Err("unsupported operand",0,"cannot save to immediate value")
 
         if destT == Register:
-            dest:Register
             if srcT == Register:
                 out.append(0x10)
                 out.append((destval<<4)|srcval)
@@ -107,7 +106,6 @@ class Mov(Instruction):
                     out.append(destval<<4)
                     out.extend(val)
             elif srcT == Dereference:
-                src:Dereference
                 if length == 0:
                     out.append(0x19)
                 else:
@@ -118,9 +116,17 @@ class Mov(Instruction):
                 descriptor = (target << 4) | (base+8)
                 out.append(descriptor)
                 out.extend(offset.to_bytes(2,'little',signed=True))
+            elif srcT == IndirectDereference:
+                base = src.value
+                if length == 0:
+                    out.append(0x19)
+                else:
+                    out.append(0x1B)
+                target = dest.value
+                descriptor = (target << 4) | base
+                out.append(descriptor)
 
         elif destT == Dereference:
-            dest:Dereference
             if srcT == Register:
                 if length == 0:
                     out.append(0x18)
@@ -129,10 +135,28 @@ class Mov(Instruction):
                 base = dest.base
                 offset = dest.value
                 source = src.value
-                descriptor = ((base+8) << 4)|(source)
+                descriptor = ((base+8) << 4)|source
                 out.append(descriptor)
                 out.extend(offset.to_bytes(2,'little',signed=True))
-        
+            elif srcT == Dereference or srcT == IndirectDereference:
+                return Err("unsupported operand",1,"copy directly from memory to memory")
+            elif srcT == Immediate:
+                return Err("unsupported operand",1,"cannot store immediate value directly to memory")
+        elif destT == IndirectDereference:
+            if srcT == Register:
+                base = dest.value
+                if length == 0:
+                    out.append(0x18)
+                else:
+                    out.append(0x1A)
+                source = src.value
+                descriptor = (base << 4) | source
+                out.append(descriptor)
+            elif srcT == Dereference or srcT == IndirectDereference:
+                return Err("unsupported operand",1,"copy directly from memory to memory")
+            elif srcT == Immediate:
+                return Err("unsupported operand",1,"cannot store immediate value directly to memory")
+
         if out:
             return bytes(out)
         

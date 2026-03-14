@@ -25,10 +25,10 @@ class Executor:
         # 4: cs, ds, ss, es
         # 8: ip, sp, bp
         # source and dest as dereference:
-        #  0: cs+bx, ds+bx, ss+bx, es+bx
-        #  4: ip+bx, sp+bx, bp+bx, (unused)
-        #  8: cs+imm, ds+imm, ss+imm, es+imm
-        # 11: ip+imm, sp+imm, bp+imm
+        # 0: cs+bx, ds+bx, ss+bx, es+bx
+        # 4: ip+bx, sp+bx, bp+bx, (unused)
+        # 8: cs+imm, ds+imm, ss+imm, es+imm
+        # B: ip+imm, sp+imm, bp+imm
         if not inst in instnovariant:
             source = instvariant & 0xF
             dest = instvariant >> 4
@@ -36,6 +36,7 @@ class Executor:
         match inst:
             case insts.rmov:
                 set(dest,get(source))
+
             case insts.ldi4:
                 set(dest,source)
             case insts.ldi8:
@@ -53,7 +54,8 @@ class Executor:
                 set(dest,srcval)
             case insts.ldw:
                 if source < 8:
-                    srcval = memory.loadw(get(source+4)+get(1))
+                    addr = (get(source+4)<<4)+get(1)
+                    srcval = memory.loadw(addr)
                 elif source <= 13:
                     addr = (get(source-4)<<4)+fetchs(2)
                     srcval = memory.loadw(addr)
@@ -61,7 +63,7 @@ class Executor:
                 set(dest,srcval)
             case insts.stb:
                 if dest < 8:
-                    addr = get(dest+4)+get(1)
+                    addr = (get(source+4)<<4)+get(1)
                 elif dest <= 13:
                     addr = (get(dest-4)<<4)+fetchs(2)
                 memory.storeb(addr,get(source))
