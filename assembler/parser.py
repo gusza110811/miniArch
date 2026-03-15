@@ -86,40 +86,45 @@ class Transformer(t):
             return " ".join([repr(value) for value in self.children])
         
         def eval(self, context):
-            codegens = [child for child in self.children if isinstance(child,Transformer.codegen_block)]
-            non_codegens = [child for child in self.children if child not in codegens]
+            self.blocks = [child for child in self.children if isinstance(child,Transformer.codegen)]
+            non_codegens = [child for child in self.children if child not in self.blocks]
 
             for child in non_codegens:
                 child.eval(context)
 
-            self.functions = [child for child in self.children if isinstance(child,Transformer.code_block)]
-            self.data = [child for child in self.children if isinstance(child,Transformer.data_block)]
-
-            for func in self.functions:
-                func.eval(context)
-            for part in self.data:
-                part.eval(context)
+            for block in self.blocks:
+                block.eval(context)
         
         def collect(self, context:Context):
-            for func in self.functions:
-                func.collect(context)
-            for part in self.data:
-                part.collect(context)
+            for block in self.blocks:
+                block.collect(context)
         
         def emit(self):
             out = []
 
-            for func in self.functions:
-                out.append(func.emit())
-            for part in self.data:
-                out.append(part.emit())
+            for block in self.blocks:
+                out.append(block.emit())
             
             return b"".join(out)
 
     def transform(self, tree) -> start:
         return super().transform(tree)
+    
+    class codegen(Branch):
+        def __init__(self, value):
+            super().__init__(value)
+            self.value = self.children[0]
 
-    class codegen_block(Branch):
+        def eval(self, context:Context):
+            pass
+
+        def collect(self, context:Context):
+            pass
+        
+        def emit(self):
+            return b""
+
+    class codegen_block(codegen):
         def __init__(self, value):
             self.name = value[0]
             self.children = value[1:]
@@ -146,19 +151,6 @@ class Transformer(t):
             for item in self.codegens:
                 out += item.emit()
             return out
-    class codegen(Branch):
-        def __init__(self, value):
-            super().__init__(value)
-            self.value = self.children[0]
-
-        def eval(self, context:Context):
-            pass
-
-        def collect(self, context:Context):
-            pass
-        
-        def emit(self):
-            return b""
 
     class code_block(codegen_block):
         def eval(self, context):
@@ -284,6 +276,15 @@ class Transformer(t):
     class org(codegen):
         def eval(self, context):
             context.inc_pc(self.children[0].eval(context) - context.get_pc())
+    
+    class align(codegen):
+        def eval(self, context):
+            self.length = self.children[0].eval(context) - context.get_pc()
+            context.inc_pc(self.length)
+        def collect(self, context):
+            self.out = b"\0" * self.length
+        def emit(self):
+            return self.out
 
     class Parameter(Branch):pass
 

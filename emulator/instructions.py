@@ -16,5 +16,9 @@ class Instructions(enum.Enum):
     addi4= 0x21
     addi8= 0x22
     addi = 0x23
+    sub  = 0x24
+    subi4= 0x25
+    subi8= 0x26
+    subi = 0x27
 
     halt= 0xff

@@ -89,7 +89,7 @@ class Emulator:
         
         print("\nRam:")
         
-        for val in self.truncate_memory():
+        for val in self.truncate_memory(self.memory.ram):
             print(val,end="  ")
             items += 1
             if items == itemperline:
@@ -97,25 +97,25 @@ class Emulator:
                 items = 0
         items = 0
         print("\nRom:")
-        for idx, val in enumerate(self.memory.rom.data):
-            print(f"{idx:04X}: {val:02X}",end="  ")
+        for val in self.truncate_memory(self.memory.rom):
+            print(val,end="  ")
             items += 1
             if items == itemperline:
                 print()
                 items = 0
         print()
 
-    def truncate_memory(self, start: int = 0, end: int = None):
+    def truncate_memory(self, mem, start: int = 0, end: int = None):
         result = []
         if end is None:
-            end = len(self.memory.ram.values)
+            end = len(mem.values)
 
         prev_value = None
         repeat_count = 0
         printed = False
 
         for i in range(start, end):
-            value = self.memory.ram.values[i]
+            value = mem.values[i]
 
             if value == prev_value:
                 repeat_count += 1

@@ -3,6 +3,8 @@ start: statement+
 ?statement: code_block
     | data_block
     | constantdef
+    | code_directive
+    | labeldef
 
 code_block: "func" IDENTIFIER "{" code_statement* "}"
 
@@ -40,6 +42,7 @@ labeldef: IDENTIFIER ":"
     | ".zero" expr -> zero
 
 ?code_directive: ".org" expr "\n" -> org
+    | ".align" expr -> align
 
 ?expr: bitwise_or
 

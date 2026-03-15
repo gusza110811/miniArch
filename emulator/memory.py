@@ -4,6 +4,7 @@ from collections import deque
 class Rom:
     def __init__(self,data:bytearray):
         self.data = data
+        self.values = self.data
         self.datalen = len(data)
     
     def loadb(self, address:int) -> int:

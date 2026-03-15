@@ -17,7 +17,10 @@ class Executor:
         set = emulator.set
         check = emulator.check
         instnovariant = [insts.halt]
-        instcheck = [insts.add,insts.addi4,insts.addi8,insts.addi]
+        instcheck = [
+            insts.add,insts.addi4,insts.addi8,insts.addi,
+            insts.sub,insts.subi4,insts.subi8,insts.subi
+        ]
 
         # instruction variants (for those that supports it)
         # bits 0-3: source
@@ -84,8 +87,20 @@ class Executor:
 
             case insts.add:
                 set(dest,get(dest)+get(source))
-            case inst.addi4:
+            case insts.addi4:
                 set(dest,get(dest)+source)
+            case insts.addi8:
+                set(dest,get(dest)+fetchs(1))
+            case insts.addi:
+                set(dest,get(dest)+fetchs(2))
+            case insts.sub:
+                set(dest,get(dest)-get(source))
+            case insts.subi4:
+                set(dest,get(dest)-source)
+            case insts.subi8:
+                set(dest,get(dest)-fetchs(1))
+            case insts.subi:
+                set(dest,get(dest)-fetchs(2))
 
             case insts.halt:
                 emulator.running = False
