@@ -3,14 +3,23 @@
 ; DS = SS = ES = 0
 
 func main {
-    mov ax, [b cs+val1]
-    mov bx, [cs+val2]
-    mov [b 0], bx
-    mov cx, [b 0]
+    mov bx, val1
+    mov ax, [b cs + bx]
+    add bx, 2
+    mov dx, [cs + bx]
+    add bx, 2
+    mov cx, [cs + bx]
     halt
 }
 
 data struct {
-    val1:   .byte 0x18
+    val1:   .word 0x80
     val2:   .word 0x1108
+    val3:   .word 0x6502
 }
+
+; expected end state
+; ax = 80
+; bx = ...
+; cx = 6502
+; dx = 1108

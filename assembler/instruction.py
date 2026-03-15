@@ -44,8 +44,11 @@ class Instruction:
             return False
     def check_count(self, expect:int):
         if expect == len(self.args):
-            return True
-        return False
+            return 0
+        if expect > len(self.args):
+            return 1
+        if expect < len(self.args):
+            return -1
 
 class Mov(Instruction):
     def get(self, pc, size=2):
@@ -65,21 +68,15 @@ class Mov(Instruction):
         if srcL != None and destL != None and srcL != destL and srcT != Register and destT != Register:
             return Err("conflicting data length",0,f"{datalen.index(destL)} vs {datalen.index(srcL)}")
 
-        if srcT == Register:
-            length = srcL
-            if destL != None:
-                length = destL
-        elif destT == Register:
-            length = destL
-            if srcL != None:
-                length = srcL
-        else:
-            if srcL != None:
-                length = srcL
-            if destL != None:
-                length = destL
-        
-        if length == None:
+        length = destL or srcL
+
+        if length is None:
+            if destT == Register:
+                length = dest.default_size
+            elif srcT == Register:
+                length = src.default_size
+
+        if length is None:
             return Err("ambiguous data length",0)
 
         out = bytearray()
@@ -92,19 +89,10 @@ class Mov(Instruction):
                 out.append(0x10)
                 out.append((destval<<4)|srcval)
             elif srcT == Immediate:
-                if srcval < 16:
-                    out.append(0x11)
-                    out.append((destval<<4)|srcval)
-                else:
-                    val = src.get(0)
-                    if len(val) == 1:
-                        out.append(0x12)
-                    elif len(val) == 2:
-                        out.append(0x13)
-                    else:
-                        return Err("immediate value too large",1,f"{srcval} does not fit in 16 bits")
-                    out.append(destval<<4)
-                    out.extend(val)
+                out.append(0x11)
+                if srcval > 15:
+                    return Err("Immediate value too large",1,f"{src.value} does not fit in 4 bit, try using `ldi8` or `ldi`")
+                out.append((destval<<4)|srcval)
             elif srcT == Dereference:
                 if length == 0:
                     out.append(0x19)
@@ -153,7 +141,7 @@ class Mov(Instruction):
                 descriptor = (base << 4) | source
                 out.append(descriptor)
             elif srcT == Dereference or srcT == IndirectDereference:
-                return Err("unsupported operand",1,"copy directly from memory to memory")
+                return Err("unsupported operand",1,"cannot copy directly from memory to memory")
             elif srcT == Immediate:
                 return Err("unsupported operand",1,"cannot store immediate value directly to memory")
 
@@ -162,10 +150,85 @@ class Mov(Instruction):
         
         return Err("not implemented",0,f"{destT} and {srcT} pair is not implemented")
 register("mov",Mov)
+class Ldi8(Instruction):
+    def get(self, pc, size=2):
+        countcmp = self.check_count(2)
+        if countcmp:
+            return Err(("not enough" if countcmp == -1 else "too many") + " parameter",-1,f"expected 2, got {len(self.args)}")
+        dest = self.args[0]
+        src = self.args[1]
+        destval = dest.value
+        srcval = src.value
+
+        if not self.check_type(0,Register):
+            return Err("unsupported operand",0,f"Expected a Register, not {dest.__class__.__name__}")
+        if not self.check_type(1,Immediate):
+            return Err("unsupported operand",1,f"Expected an Immediate, not {src.__class__.__name__}")
+        
+        if srcval > 255:
+            return Err("immediate value too large",1,f"{srcval} does not fit in 8 bits")
+
+        return bytes([
+            0x12, destval << 4, srcval
+        ])
+register("ldi8",Ldi8)
+class Ldi(Instruction):
+    def get(self, pc, size=2):
+        countcmp = self.check_count(2)
+        if countcmp:
+            return Err(("not enough" if countcmp == -1 else "too many") + " parameter",-1,f"expected 2, got {len(self.args)}")
+        dest = self.args[0]
+        src = self.args[1]
+        destval = dest.value
+        srcval = src.value
+
+        if not self.check_type(0,Register):
+            return Err("unsupported operand",0,f"Expected a Register, not {dest.__class__.__name__}")
+        if not self.check_type(1,Immediate):
+            return Err("unsupported operand",1,f"Expected an Immediate, not {src.__class__.__name__}")
+        
+        return bytes([
+            0x13, (destval << 4)
+        ]) + src.get(2)
+register("ldi",Ldi)
+
+class Add(Instruction):
+    def get(self, pc, size=2):
+        countcmp = self.check_count(2)
+        if countcmp:
+            return Err(("not enough" if countcmp == -1 else "too many") + " parameter",-1,f"expected 2, got {len(self.args)}")
+        dest = self.args[0]
+        src = self.args[1]
+        destval = dest.value
+        srcval = src.value
+        destT = dest.__class__
+        srcT = src.__class__
+
+        out = bytearray()
+
+        if destT == Immediate:
+            return Err("unsupported operand",0,"cannot add to immediate value")
+        if destT == Dereference or destT == IndirectDereference:
+            return Err("unsupported operand",0,"cannot add directly to memory")
+        if srcT == Dereference or srcT == IndirectDereference:
+            return Err("unsupported operand",0,"cannot add directly from memory")
+        
+        dest:Register
+        if srcT == Register:
+            out.append(0x20)
+            out.append((destval<<4) | (srcval))
+        elif srcT == Immediate:
+            if srcval > 15:
+                return Err("Immediate value too large",1,f"{src.value} does not fit in 4 bit, try using `addi8` or `addi`")
+            out.append(0x21)
+            out.append((destval<<4) | (srcval))
+        
+        return bytes(out)
+register("add",Add)
 
 class Halt(Instruction):
     def get(self, pc, size=2):
-        if not self.check_count(0):
+        if self.check_count(0):
             return Err("too many parameter",0,"`halt` does not take any parameter")
         return b"\xff"
 register("halt",Halt)

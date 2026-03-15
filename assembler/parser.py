@@ -464,8 +464,8 @@ class Transformer(t):
 
     class REGISTER(Leaf):
         def eval(self):
-            return ['ax','bx','cx','dx'
-                    'cs','ds','ss','es'
+            return ['ax','bx','cx','dx',
+                    'cs','ds','ss','es',
                     'ip','sp','bp'].index(self.value.lower())
     
     class SIGN(Leaf):

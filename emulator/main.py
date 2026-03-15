@@ -5,6 +5,8 @@ from instructions import Instructions
 
 AX, BX, CX, DX, CS, DS, SS, ES, IP, SP, BP = 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
 
+Z, C, N = 0, 1, 2
+
 class Emulator:
     def __init__(self):
         self.io = IO()
@@ -18,7 +20,30 @@ class Emulator:
             0,0,0    # ip, sp, bp
         ]
 
+        self.flags = [
+            False, # zero
+            False, # carry
+            False  # negative
+        ]
+
         self.running = True
+    
+    def check(self,reg:int):
+        res = self.registers[reg]
+        if res == 0:
+            self.flags[Z] = True
+        else:
+            self.flags[Z] = False
+        if res > 0xFFFF:
+            self.flags[C] = True
+            self.registers[reg] &= 0xFFFF
+        else:
+            self.flags[C] = False
+        if res < 0:
+            self.flags[N] = True
+            self.registers[reg] &= 0xFFFF
+        else:
+            self.flags[N] = False
     
     def get(self,id:int) -> int:
         if id >= len(self.registers):
@@ -48,9 +73,8 @@ class Emulator:
             except ValueError as e:
                 print(self.registers[IP], e)
                 self.running == False
-            variant = self.fetch()
 
-            self.executor.execute(inst,variant)
+            self.executor.execute(inst)
     
     def dump(self):
         names = ["ax","bx","cx","dx",

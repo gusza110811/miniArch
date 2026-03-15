@@ -12,4 +12,9 @@ class Instructions(enum.Enum):
     inp  = 0x1C
     out  = 0x1D
 
+    add  = 0x20
+    addi4= 0x21
+    addi8= 0x22
+    addi = 0x23
+
     halt= 0xff

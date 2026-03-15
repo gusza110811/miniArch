@@ -19,7 +19,8 @@ class Immediate(BaseParameter):
 
 class Register(BaseParameter):
     def __init__(self, value, length=1):
-        super().__init__(value, length)
+        super().__init__(value)
+        self.default_size = length
     def __repr__(self):
         return f"Register({self.value})"
 

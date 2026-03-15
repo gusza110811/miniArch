@@ -8,14 +8,16 @@ class OpcodeFault(Exception):pass
 class Executor:
     def __init__(self, emulator:"Emulator"):
         self.emulator = emulator
-    def execute(self, inst:insts, instvariant:int):
+    def execute(self, inst:insts):
         emulator = self.emulator
         fetchs = self.emulator.fetchs
         memory = emulator.memory
         io = emulator.io
         get = emulator.get
         set = emulator.set
+        check = emulator.check
         instnovariant = [insts.halt]
+        instcheck = [insts.add,insts.addi4,insts.addi8,insts.addi]
 
         # instruction variants (for those that supports it)
         # bits 0-3: source
@@ -29,7 +31,9 @@ class Executor:
         # 4: ip+bx, sp+bx, bp+bx, (unused)
         # 8: cs+imm, ds+imm, ss+imm, es+imm
         # B: ip+imm, sp+imm, bp+imm
+        dest, source = None, None
         if not inst in instnovariant:
+            instvariant = fetchs(1)
             source = instvariant & 0xF
             dest = instvariant >> 4
 
@@ -46,7 +50,11 @@ class Executor:
             
             case insts.ldb:
                 if source < 8:
-                    srcval = memory.loadb(get(source+4)+get(1))
+                    if dest < 8:
+                        addr = (get(source+4)<<4)+get(1)
+                    elif dest <= 13:
+                        addr = (get(dest-4)<<4)+fetchs(2)
+                    srcval = memory.loadb(addr)
                 elif source <= 13:
                     addr = (get(source-4)<<4)+fetchs(2)
                     srcval = memory.loadb(addr)
@@ -74,7 +82,14 @@ class Executor:
                     addr = (get(dest-4)<<4)+fetchs(2)
                 memory.storew(addr,get(source))
 
+            case insts.add:
+                set(dest,get(dest)+get(source))
+            case inst.addi4:
+                set(dest,get(dest)+source)
+
             case insts.halt:
                 emulator.running = False
+        if inst in instcheck:
+            check(dest)
 
 if TYPE_CHECKING: from main import Emulator
