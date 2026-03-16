@@ -89,10 +89,19 @@ class Mov(Instruction):
                 out.append(0x10)
                 out.append((destval<<4)|srcval)
             elif srcT == Immediate:
-                out.append(0x11)
-                if srcval > 15:
-                    return Err("Immediate value too large",1,f"{src.value} does not fit in 4 bit, try using `ldi8` or `ldi`")
-                out.append((destval<<4)|srcval)
+                if srcval < 16:
+                    out.append(0x11)
+                    out.append((destval<<4)|srcval)
+                elif srcval < 256:
+                    out.append(0x12)
+                    out.append(destval<<4)
+                    out.append(srcval)
+                elif srcval < 65536:
+                    out.append(0x13)
+                    out.append(destval<<4)
+                    out.extend(srcval.to_bytes(2,"little"))
+                else:
+                    return Err("Immediate value too large",1,f"{src.value} does not fit in 16 bit")
             elif srcT == Dereference:
                 if length == 0:
                     out.append(0x19)
@@ -103,7 +112,7 @@ class Mov(Instruction):
                 target = dest.value
                 descriptor = (target << 4) | (base+8)
                 out.append(descriptor)
-                out.extend(offset.to_bytes(2,'little',signed=True))
+                out.extend(offset.to_bytes(2,'little'))
             elif srcT == IndirectDereference:
                 base = src.value
                 if length == 0:
@@ -125,7 +134,7 @@ class Mov(Instruction):
                 source = src.value
                 descriptor = ((base+8) << 4)|source
                 out.append(descriptor)
-                out.extend(offset.to_bytes(2,'little',signed=True))
+                out.extend(offset.to_bytes(2,'little'))
             elif srcT == Dereference or srcT == IndirectDereference:
                 return Err("unsupported operand",1,"copy directly from memory to memory")
             elif srcT == Immediate:
@@ -150,50 +159,6 @@ class Mov(Instruction):
         
         return Err("not implemented",0,f"{destT} and {srcT} pair is not implemented")
 register("mov",Mov)
-class Ldi8(Instruction):
-    def get(self, pc, size=2):
-        countcmp = self.check_count(2)
-        if countcmp:
-            return Err(("not enough" if countcmp == -1 else "too many") + " parameter",-1,f"expected 2, got {len(self.args)}")
-        dest = self.args[0]
-        src = self.args[1]
-        destval = dest.value
-        srcval = src.value
-
-        if not self.check_type(0,Register):
-            return Err("unsupported operand",0,f"Expected a Register, not {dest.__class__.__name__}")
-        if not self.check_type(1,Immediate):
-            return Err("unsupported operand",1,f"Expected an Immediate, not {src.__class__.__name__}")
-        
-        if srcval > 255:
-            return Err("immediate value too large",1,f"{srcval} does not fit in 8 bits")
-
-        return bytes([
-            0x12, destval << 4, srcval
-        ])
-register("ldi8",Ldi8)
-class Ldi(Instruction):
-    def get(self, pc, size=2):
-        countcmp = self.check_count(2)
-        if countcmp:
-            return Err(("not enough" if countcmp == -1 else "too many") + " parameter",-1,f"expected 2, got {len(self.args)}")
-        dest = self.args[0]
-        src = self.args[1]
-        destval = dest.value
-        srcval = src.value
-
-        if not self.check_type(0,Register):
-            return Err("unsupported operand",0,f"Expected a Register, not {dest.__class__.__name__}")
-        if not self.check_type(1,Immediate):
-            return Err("unsupported operand",1,f"Expected an Immediate, not {src.__class__.__name__}")
-        
-        if srcval > 0xFFFF:
-            return Err("immediate value too large",1,f"{srcval} does not fit in 16 bit")
-
-        return bytes([
-            0x13, (destval << 4)
-        ]) + src.get(2)
-register("ldi",Ldi)
 
 class Add(Instruction):
     def get(self, pc, size=2):
@@ -221,50 +186,22 @@ class Add(Instruction):
             out.append(0x20)
             out.append((destval<<4) | (srcval))
         elif srcT == Immediate:
-            if srcval > 15:
-                return Err("Immediate value too large",1,f"{src.value} does not fit in 4 bit, try using `addi8` or `addi`")
-            out.append(0x21)
-            out.append((destval<<4) | (srcval))
+            if srcval < 16:
+                out.append(0x21)
+                out.append((destval<<4) | (srcval))
+            elif srcval < 256:
+                out.append(0x22)
+                out.append(destval<<4)
+                out.append(srcval)
+            elif srcval < 65536:
+                out.append(0x23)
+                out.append(destval<<4)
+                out.extend(srcval.to_bytes(2,"little"))
+            else:
+                return Err("Immediate value too large",1,f"{src.value} does not fit in 16 bit")
         
         return bytes(out)
 register("add",Add)
-class Addi8(Instruction):
-    def get(self, pc, size=2):
-        countcmp = self.check_count(2)
-        if countcmp:
-            return Err(("not enough" if countcmp == -1 else "too many") + " parameter",-1,f"expected 2, got {len(self.args)}")
-        dest = self.args[0]
-        src = self.args[1]
-        if not self.check_type(0,Register):
-            return Err("unsupported operand",0,f"cannot add immediate value to {dest.__class__.__name__}")
-        if not self.check_type(1,Immediate):
-            return Err("unsupported operand",1,f"add immediate needs immediate value, not {dest.__class__.__name__}")
-        
-        destval = dest.value
-        srcval = src.value
-        return bytes([
-            0x21,destval<<4,srcval
-        ])
-register("addi8",Addi8)
-class Addi(Instruction):
-    def get(self, pc, size=2):
-        countcmp = self.check_count(2)
-        if countcmp:
-            return Err(("not enough" if countcmp == -1 else "too many") + " parameter",-1,f"expected 2, got {len(self.args)}")
-        dest = self.args[0]
-        src = self.args[1]
-        if not self.check_type(0,Register):
-            return Err("unsupported operand",0,f"cannot add immediate value to {dest.__class__.__name__}")
-        if not self.check_type(1,Immediate):
-            return Err("unsupported operand",1,f"add immediate needs immediate value, not {dest.__class__.__name__}")
-        destval = dest.value
-        srcval = src.value
-        if srcval > 0xFFFF:
-            return Err("immediate value too large",1,f"{srcval} does not fit in 16 bit")
-        return bytes([
-            0x22,destval<<4
-        ]) + src.get(2)
-register("addi",Addi)
 
 class Sub(Instruction):
     def get(self, pc, size=2):
@@ -292,50 +229,22 @@ class Sub(Instruction):
             out.append(0x24)
             out.append((destval<<4) | (srcval))
         elif srcT == Immediate:
-            if srcval > 15:
-                return Err("Immediate value too large",1,f"{src.value} does not fit in 4 bit, try using `addi8` or `addi`")
-            out.append(0x25)
-            out.append((destval<<4) | (srcval))
+            if srcval < 16:
+                out.append(0x25)
+                out.append((destval<<4) | (srcval))
+            elif srcval < 256:
+                out.append(0x26)
+                out.append(destval<<4)
+                out.append(srcval)
+            elif srcval < 65536:
+                out.append(0x27)
+                out.append(destval<<4)
+                out.extend(srcval.to_bytes(2,"little"))
+            else:
+                return Err("Immediate value too large",1,f"{src.value} does not fit in 16 bit")
         
         return bytes(out)
 register("sub",Sub)
-class Subi8(Instruction):
-    def get(self, pc, size=2):
-        countcmp = self.check_count(2)
-        if countcmp:
-            return Err(("not enough" if countcmp == -1 else "too many") + " parameter",-1,f"expected 2, got {len(self.args)}")
-        dest = self.args[0]
-        src = self.args[1]
-        if not self.check_type(0,Register):
-            return Err("unsupported operand",0,f"cannot add immediate value to {dest.__class__.__name__}")
-        if not self.check_type(1,Immediate):
-            return Err("unsupported operand",1,f"add immediate needs immediate value, not {dest.__class__.__name__}")
-        
-        destval = dest.value
-        srcval = src.value
-        return bytes([
-            0x26,destval<<4,srcval
-        ])
-register("subi8",Subi8)
-class Subi(Instruction):
-    def get(self, pc, size=2):
-        countcmp = self.check_count(2)
-        if countcmp:
-            return Err(("not enough" if countcmp == -1 else "too many") + " parameter",-1,f"expected 2, got {len(self.args)}")
-        dest = self.args[0]
-        src = self.args[1]
-        if not self.check_type(0,Register):
-            return Err("unsupported operand",0,f"cannot add immediate value to {dest.__class__.__name__}")
-        if not self.check_type(1,Immediate):
-            return Err("unsupported operand",1,f"add immediate needs immediate value, not {dest.__class__.__name__}")
-        destval = dest.value
-        srcval = src.value
-        if srcval > 0xFFFF:
-            return Err("immediate value too large",1,f"{srcval} does not fit in 16 bit")
-        return bytes([
-            0x27,destval<<4
-        ]) + src.get(2)
-register("subi",Subi)
 
 class Halt(Instruction):
     def get(self, pc, size=2):

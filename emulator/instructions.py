@@ -22,3 +22,6 @@ class Instructions(enum.Enum):
     subi = 0x27
 
     halt= 0xff
+
+    def __str__(self):
+        return self.name

@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING
 from instructions import Instructions as insts
 
-AX, BX, CX, DX, CS, DS, SS, ES, IP, SP, BP = 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+AX, BX, CX, DX, CS, DS, SS, ES, SP, BP = 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
 
 class OpcodeFault(Exception):pass
 
@@ -28,12 +28,12 @@ class Executor:
         # source and dest as direct value:
         # 0: ax, bx, cx, dx
         # 4: cs, ds, ss, es
-        # 8: ip, sp, bp
+        # 8: sp, bp
         # source and dest as dereference:
         # 0: cs+bx, ds+bx, ss+bx, es+bx
         # 4: ip+bx, sp+bx, bp+bx, (unused)
         # 8: cs+imm, ds+imm, ss+imm, es+imm
-        # B: ip+imm, sp+imm, bp+imm
+        # B: sp+imm, bp+imm
         dest, source = None, None
         if not inst in instnovariant:
             instvariant = fetchs(1)

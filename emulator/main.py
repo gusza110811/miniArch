@@ -3,7 +3,7 @@ import termmagic
 from execute import Executor, OpcodeFault
 from instructions import Instructions
 
-AX, BX, CX, DX, CS, DS, SS, ES, IP, SP, BP = 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+AX, BX, CX, DX, CS, DS, SS, ES, SP, BP = 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
 
 Z, C, N = 0, 1, 2
 
@@ -17,16 +17,24 @@ class Emulator:
         self.registers = [
             0,0,0,0, # ax, bx, cx, dx
             0xf000,0,0,0, # cs, ds, ss, es
-            0,0,0    # ip, sp, bp
+            0,0    # sp, bp
         ]
+
+        self.ip = 0
 
         self.flags = [
             False, # zero
             False, # carry
-            False  # negative
+            False, # negative
         ]
 
         self.running = True
+        self.doTrace = True
+
+        self.trace = []
+        self.jumped = False
+
+        self.params = []
     
     def check(self,reg:int):
         res = self.registers[reg]
@@ -61,20 +69,38 @@ class Emulator:
         tmp = bytearray()
         for idx in range(count):
             tmp.append(self.fetch())
-        return int.from_bytes(tmp,"little",signed=signed)
-    
+        val = int.from_bytes(tmp,"little",signed=signed)
+        self.params.append(val)
+        return val
+
     def main(self,initcode:bytearray):
         self.memory = Memory(initcode)
+        doTrace = self.doTrace
+        memAccess = [
+            Instructions.ldb, Instructions.ldw,
+            Instructions.stb, Instructions.stw
+        ]
 
         while self.running:
-            self.registers[IP] = self.pc
+            self.ip = self.pc
             try:
                 inst = Instructions(self.fetch())
             except ValueError as e:
-                print(self.registers[IP], e)
+                print(self.ip, e)
                 self.running == False
-
+            if doTrace:
+                self.trace.append((
+                    (self.registers[CS],self.ip),
+                    self.jumped,
+                    inst,
+                    self.params,
+                    self.registers.copy(),
+                    self.flags.copy(),
+                    self.memory.lastAccess() if inst in memAccess else None
+                ))
             self.executor.execute(inst)
+
+            self.params = []
     
     def dump(self):
         names = ["ax","bx","cx","dx",
@@ -138,10 +164,39 @@ class Emulator:
         
         return result
 
+def writeTrace(filename:str, trace:list):
+    file = open(filename,"w")
+    registerNames = [
+        "ax", "bx", "cx", "dx",
+        "cs", "ds", "ss", "es",
+        "sp", "bp"
+    ]
+    for item in trace:
+        file.write(
+            (f"{item[0][0]:04X}:{item[0][1]:04X}" +
+            (">" if item[1] else " ") +
+            "{0}:{1}".format(str(item[2]),item[3][0] if item[3] else 0).ljust(10) +
+            "{0:<5}".format(", ".join([f"{item:4X}" for item in item[3][1:]])) + " " +
+            (
+                " ".join([f"{registerNames[idx]}={item[4][idx]:04X}" for idx in range(10)])
+            ) + " " +
+            (
+                ('Z' if item[5][0] else "z") +
+                ('C' if item[5][1] else "c") +
+                ('N' if item[5][2] else 'n')
+            ) + " " +
+            ("  " + f"{item[6][0]:05X} = {item[6][1]:X}" if item[6] else "")
+            ).rstrip() + "\n"
+        )
+    file.close()
 
 if __name__ == "__main__":
     termmagic.disable_buffering()
     emulator = Emulator()
+
+    trace = True
+
+    emulator.doTrace = trace
 
     code = open("main.bin","rb").read()
 
@@ -149,5 +204,7 @@ if __name__ == "__main__":
         emulator.main(code)
     finally:
         termmagic.reset()
-    
+
     emulator.dump()
+    if trace:
+        writeTrace(".trace",emulator.trace)

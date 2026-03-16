@@ -21,13 +21,18 @@ class Ram:
         self.values = bytearray(0xFFFFF)
 
     def loadb(self, address:int) -> int:
-        return self.values[address]
+        val = self.values[address]
+        self.lastAddr, self.lastValue = address, val
+        return val
 
     def storeb(self, address:int, value:int):
         self.values[address] = value&0xff
+        self.lastAddr, self.lastValue = address, value
     
     def loadw(self, address:int) -> int:
-        return self.loadb(address) | (self.loadb(address+1) << 8)
+        val = self.loadb(address) | (self.loadb(address+1) << 8)
+        self.lastAddr, self.lastValue = address, val
+        return val
 
     def storew(self, address:int, value:int):
         self.storeb(address,value)
@@ -37,25 +42,48 @@ class Memory:
     def __init__(self,rom:bytearray):
         self.ram = Ram()
         self.rom = Rom(rom)
-
-        self.storeb = self.ram.storeb
-        self.storew = self.ram.storew
+        self.lastAddr = 0
+        self.lastValue = 0
     
     def loadb(self,address:int):
         if address >= 0xF0000:
-            return self.rom.loadb(address-0xF0000)
+            val = self.rom.loadb(address-0xF0000)
         else:
-            return self.ram.loadb(address)
+            val = self.ram.loadb(address)
+        self.lastAddr, self.lastValue = address, val
+        return val
     
     def loadw(self,address:int):
         if address >= 0xF0000:
-            return self.rom.loadw(address-0xF0000)
+            val = self.rom.loadw(address-0xF0000)
         else:
-            return self.ram.loadw(address)
+            val = self.ram.loadw(address)
+        self.lastAddr, self.lastValue = address, val
+        return val
+
+    def loadbs(self,address:int):
+        val = self.ram.loadb(address)
+        self.lastAddr, self.lastValue = address, val
+        return val
+    def loadws(self,address:int):
+        val = self.ram.loadw(address)
+        self.lastAddr, self.lastValue = address, val
+        return val
+
+    def storeb(self,address:int,value:int):
+        self.ram.storeb(address,value)
+        self.lastAddr, self.lastValue = address, value
+    
+    def storew(self,address:int,value:int):
+        self.ram.storew(address,value)
+        self.lastAddr, self.lastValue = address, value
+    
+    def lastAccess(self):
+        return (self.lastAddr, self.lastValue)
     
     def shadow(self):
-        self.loadb = self.ram.loadb
-        self.loadw = self.ram.loadw
+        self.loadb = self.loadbs
+        self.loadw = self.loadws
 
 class Port:
     def __init__(self):pass

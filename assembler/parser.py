@@ -96,8 +96,11 @@ class Transformer(t):
                 block.eval(context)
         
         def collect(self, context:Context):
-            for block in self.blocks:
-                block.collect(context)
+            PASS = 3
+            for idx in range(PASS):
+                context.pc = 0
+                for block in self.blocks:
+                    block.collect(context)
         
         def emit(self):
             out = []
@@ -130,19 +133,19 @@ class Transformer(t):
             self.children = value[1:]
 
         def eval(self, context):
+            self.name = self.name.eval()
             if self.name:
-                self.name = self.name.eval()
-                context.add_label(self.name)
+                context.set(self.name,0xABCD)
+
             self.codegens = [child for child in self.children if isinstance(child,Transformer.codegen)]
             self.non_codegens = [child for child in self.children if child not in self.codegens]
 
-            for child in self.non_codegens:
-                child.eval(context)
-            
             for child in self.codegens:
                 child.eval(context)
         
         def collect(self, context):
+            if self.name:
+                context.add_label(self.name)
             for item in self.codegens:
                 item.collect(context)
         
@@ -171,24 +174,9 @@ class Transformer(t):
             self.args:list[Transformer.Parameter] = self.children[1:]
 
         def eval(self, context):
-            comtok:lark.Token = self.command.token
             self.command = self.command.eval()
-            tmp_args = []
-            for child in self.args:
-                tmp_args.append(child.dry_eval())
-            try:
-                dryinst = instruction.Instruction.from_str(self.command,tmp_args).get(0)
-            except SyntaxError:
-                raise ParseErr(f"unknown instruction '{self.command}'",comtok.line-1,comtok.column-1,comtok.end_column-1)
-            self.position = context.get_pc()
-            if not isinstance(dryinst,instruction.Err):
-                context.inc_pc(len(dryinst))
-            else:
-                err_begin = self.args[dryinst.pos].get_first_token()
-                err_end = self.args[dryinst.pos].get_last_token()
-                raise ParseErr(dryinst.msg, err_begin.line-1, err_begin.column-1,err_end.end_column-1,dryinst.hint)
-
         def collect(self, context):
+            self.position = context.get_pc()
             processed_args = []
 
             for child in self.args:
@@ -198,6 +186,7 @@ class Transformer(t):
                 err_begin = self.args[self.out.pos].get_first_token()
                 err_end = self.args[self.out.pos].get_last_token()
                 raise ParseErr(self.out.msg, err_begin.line-1, err_begin.column-1,err_end.end_column-1,self.out.hint)
+            context.inc_pc(len(self.out))
 
         def emit(self):
             return self.out
@@ -212,8 +201,6 @@ class Transformer(t):
         def eval(self, context):
             self.text = self.value.eval()
             context.inc_pc(len(self.text))
-        def collect(self, context):
-            pass
         def emit(self):
             return self.text.encode('utf-8')
     
@@ -231,57 +218,51 @@ class Transformer(t):
         value:Transformer.Leaf
         def __repr__(self):
             return f".byte {self.value}"
-        def eval(self, context):
-            context.inc_pc(1)
         def collect(self, context):
+            context.inc_pc(1)
             self.out = self.value.eval(context).to_bytes(1)
         def emit(self):
             return self.out
     class word(codegen):
         def __repr__(self):
             return f".word {self.value}"
-        def eval(self, context):
-            context.inc_pc(2)
         def collect(self, context):
+            context.inc_pc(2)
             self.out = self.value.eval(context).to_bytes(2, byteorder='little')
         def emit(self):
             return self.out
     class double(codegen):
         def __repr__(self):
             return f".double {self.value}"
-        def eval(self, context):
-            context.inc_pc(4)
         def collect(self, context):
+            context.inc_pc(4)
             self.out = self.value.eval(context).to_bytes(4, byteorder='little')
         def emit(self):
             return self.out
     class quad(codegen):
         def __repr__(self):
             return f".quad {self.value}"
-        def eval(self, context):
-            context.inc_pc(8)
         def collect(self, context):
+            context.inc_pc(8)
             self.out = self.value.eval(context).to_bytes(8, byteorder='little')
         def emit(self):
             return self.out
 
     class zero(codegen):
-        def eval(self, context):
-            context.inc_pc(self.children[0].eval(context))
         def collect(self, context):
+            context.inc_pc(self.children[0].eval(context))
             self.out = b"\0" * self.children[0].eval(context)
         def emit(self):
             return self.out
 
     class org(codegen):
-        def eval(self, context):
+        def collect(self, context):
             context.inc_pc(self.children[0].eval(context) - context.get_pc())
     
     class align(codegen):
-        def eval(self, context):
+        def collect(self, context):
             self.length = self.children[0].eval(context) - context.get_pc()
             context.inc_pc(self.length)
-        def collect(self, context):
             self.out = b"\0" * self.length
         def emit(self):
             return self.out
@@ -373,6 +354,9 @@ class Transformer(t):
             return f"label {self.children[0]}"
         
         def eval(self, context):
+            context.set(self.children[0].eval(),0xADDE)
+        
+        def collect(self, context):
             context.add_label(self.children[0].eval())
 
     class expr(Branch):

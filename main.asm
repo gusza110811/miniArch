@@ -3,14 +3,14 @@
 ; DS = SS = ES = 0
 
 func main {
-    ldi ds, 0xf002
+    mov ds, 0xf002
     mov bx, val1
     mov ax, [b bx]
     add bx, 2
     mov dx, [bx]
     add bx, 2
     mov cx, [bx]
-    sub cx, dx
+    sub dx, cx
     halt
 }
 
@@ -21,9 +21,3 @@ data struct {
     val2:   .word 0x1108
     val3:   .word 0x6502
 }
-
-; expected end state
-; ax = 80
-; bx = ...
-; cx = 53fa
-; dx = 1108
