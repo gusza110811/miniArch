@@ -133,8 +133,8 @@ class Transformer(t):
             self.children = value[1:]
 
         def eval(self, context):
-            self.name = self.name.eval()
             if self.name:
+                self.name = self.name.eval()
                 context.set(self.name,0xABCD)
 
             self.codegens = [child for child in self.children if isinstance(child,Transformer.codegen)]

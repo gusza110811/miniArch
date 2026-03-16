@@ -3,21 +3,32 @@
 ; DS = SS = ES = 0
 
 func main {
-    mov ds, 0xf002
+    mov ds, cs  ; CS = DS = F000
+
     mov bx, val1
-    mov ax, [b bx]
+    mov ax, [bx]
+
     add bx, 2
     mov dx, [bx]
+
     add bx, 2
     mov cx, [bx]
+
     sub dx, cx
+
     halt
 }
 
-.align 0x0020
-.org 0
-data struct {
+data { ; it can have name but not required
     val1:   .word 0x80
     val2:   .word 0x1108
     val3:   .word 0x6502
 }
+
+; expected end state
+; ax = 80
+; bx = ...
+; cx = 6502
+; dx = 1108
+;
+; Negative flag set

@@ -76,10 +76,6 @@ class Emulator:
     def main(self,initcode:bytearray):
         self.memory = Memory(initcode)
         doTrace = self.doTrace
-        memAccess = [
-            Instructions.ldb, Instructions.ldw,
-            Instructions.stb, Instructions.stw
-        ]
 
         while self.running:
             self.ip = self.pc
@@ -96,7 +92,7 @@ class Emulator:
                     self.params,
                     self.registers.copy(),
                     self.flags.copy(),
-                    self.memory.lastAccess() if inst in memAccess else None
+                    #self.memory.lastAccess() if inst in memAccess else None
                 ))
             self.executor.execute(inst)
 
@@ -175,7 +171,7 @@ def writeTrace(filename:str, trace:list):
         file.write(
             (f"{item[0][0]:04X}:{item[0][1]:04X}" +
             (">" if item[1] else " ") +
-            "{0}:{1}".format(str(item[2]),item[3][0] if item[3] else 0).ljust(10) +
+            "{0}:{1:02X}".format(str(item[2]),item[3][0] if item[3] else 0).ljust(10) +
             "{0:<5}".format(", ".join([f"{item:4X}" for item in item[3][1:]])) + " " +
             (
                 " ".join([f"{registerNames[idx]}={item[4][idx]:04X}" for idx in range(10)])
@@ -184,8 +180,8 @@ def writeTrace(filename:str, trace:list):
                 ('Z' if item[5][0] else "z") +
                 ('C' if item[5][1] else "c") +
                 ('N' if item[5][2] else 'n')
-            ) + " " +
-            ("  " + f"{item[6][0]:05X} = {item[6][1]:X}" if item[6] else "")
+            ) + " " #+
+            #("  " + f"{item[6][0]:05X} = {item[6][1]:X}" if item[6] else "")
             ).rstrip() + "\n"
         )
     file.close()

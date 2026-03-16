@@ -54,7 +54,7 @@ class Executor:
             case insts.ldb:
                 if source < 8:
                     if dest < 8:
-                        addr = (get(source+4)<<4)+get(1)
+                        addr = (get(source+4)<<4)+get(BX)
                     elif dest <= 13:
                         addr = (get(dest-4)<<4)+fetchs(2)
                     srcval = memory.loadb(addr)
@@ -65,7 +65,7 @@ class Executor:
                 set(dest,srcval)
             case insts.ldw:
                 if source < 8:
-                    addr = (get(source+4)<<4)+get(1)
+                    addr = (get(source+4)<<4)+get(BX)
                     srcval = memory.loadw(addr)
                 elif source <= 13:
                     addr = (get(source-4)<<4)+fetchs(2)
