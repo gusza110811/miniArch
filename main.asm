@@ -17,18 +17,19 @@ func main {
     sub dx, cx
 
     halt
+    end:
+    export size = end - main
 }
+; here, `main` and `size` is defined, but not `end`
 
-data { ; it can have name but not required
-    val1:   .word 0x80
-    val2:   .word 0x1108
-    val3:   .word 0x6502
-}
+val1:   .word 0x80
+val2:   .word 0x1108
+val3:   .word 0x6502
 
 ; expected end state
 ; ax = 80
 ; bx = ...
 ; cx = 6502
-; dx = 1108
+; dx = ac06
 ;
 ; Negative flag set

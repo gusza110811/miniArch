@@ -39,13 +39,11 @@ class Assembler:
             print(f"File {filename} line {e.line+1} char {e.col}")
             print(color.fg.MAGENTA + e.msg.capitalize())
             print(color.RESET + "  " + codelns[e.line])
-            print(color.fg.RED + "  " + " "*e.col+"^"*(e.colend-e.col))
+            print(color.fg.RED + "  " + " "*e.col+"^"*(e.colend-e.col if e.col < e.colend else 1))
             print(color.fg.GRAY + e.hint.capitalize())
             return None
 
         print("\n")
-
-        print(self.constructor.globals.get_all())
         return out
 
 def test():

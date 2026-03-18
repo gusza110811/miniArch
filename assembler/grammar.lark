@@ -1,48 +1,30 @@
 start: statement+
 
 ?statement: code_block
-    | data_block
     | constantdef
-    | code_directive
+    | directive
     | labeldef
-
-code_block: "func" IDENTIFIER "{" code_statement* "}"
-
-?code_statement: constantdef
-    | labeldef
+    | scope
     | instruction
-    | code_directive
 
-instruction: IDENTIFIER (parameter ("," parameter)?)? "\n"
+code_block: "func " IDENTIFIER scope
 
-?parameter: register
-    | immediate
-    | address
+scope: "{" statement* "}"
 
-register: REGISTER
-immediate: expr
-?address: "[" [ADDR_SIZE " "] [BASES "+"] "bx"i "]" -> indirect_addr
-    | "[" [ADDR_SIZE " "] [BASES SIGN] expr "]" -> direct_addr
-
-data_block: "data " [IDENTIFIER] "{" data_statement* "}"
-
-?data_statement: data_directive
-    | constantdef
-    | labeldef
-
-constantdef: "const" IDENTIFIER "=" expr
+constantdef: ["const"] IDENTIFIER "=" expr
 labeldef: IDENTIFIER ":"
 
-?data_directive: ".ascii" STRING -> text
+?directive: ".ascii" STRING -> text
     | ".asciiz" STRING -> text_nulterm
     | ".byte" expr -> byte
     | ".word" expr -> word
     | ".double" expr -> double
     | ".quad" expr -> quad
     | ".zero" expr -> zero
-
-?code_directive: ".org" expr "\n" -> org
+    | ".org" expr "\n" -> org
     | ".align" expr -> align
+    | "export" IDENTIFIER ["->" IDENTIFIER] -> export
+    | "export" constantdef -> exportdef
 
 ?expr: bitwise_or
 
@@ -73,19 +55,29 @@ labeldef: IDENTIFIER ":"
     | "-" unary -> unary_sub
 
 ?factor: "(" expr ")"
-    | symbol
     | literal
+    | symbol
 
-literal: DECIMAL
-    | "0b" BINARY
-    | "0o" OCTAL
-    | "0x" HEX
+literal: BINARY
+    | OCTAL
+    | HEX
+    | DECIMAL
     | CHAR
 
 symbol: IDENTIFIER
 
+instruction: INST (parameter ("," parameter)?)? "\n"
+
+?parameter: register
+    | immediate
+    | address
+
+register: REGISTER
+immediate: expr
+?address: "[" [ADDR_SIZE " "] [BASES "+"] "bx"i "]" -> indirect_addr
+    | "[" [ADDR_SIZE " "] [BASES SIGN] expr "]" -> direct_addr
+
 // terminals
-IDENTIFIER: /[a-zA-Z_][a-zA-Z0-9_]*/
 COMMENT: ";" /[^\n]*/
 
 REGISTER: "ax"i | "bx"i | "cx"i | "dx"i
@@ -99,11 +91,17 @@ ADDR_SIZE: "b"|"w"
 
 SIGN: "+"|"-"
 
+HEX: /0x[0-9a-fA-F_]+/
+OCTAL: /0o[0-7_]+/
+BINARY: /0b[01_]+/
 DECIMAL: /[0-9_]+/
-BINARY: /[01_]+/
-OCTAL: /[0-7_]+/
-HEX: /[0-9a-fA-F_]+/
 STRING: ESCAPED_STRING
+IDENTIFIER: /[a-zA-Z_][a-zA-Z0-9_]*/
+
+INST: "mov"i
+    | "add"i
+    | "sub"i
+    | "halt"i
 
 CHAR: "'" /.*?/ /(?<!\\)(\\\\)*?/ "'"
 

@@ -15,7 +15,7 @@ class Context:
         if self.root:
             return self.pc
         else:
-            self.parent.get_pc
+            return self.parent.get_pc()
     
     def add_label(self, name:str):
         self.set(name, self.get_pc())
@@ -25,7 +25,7 @@ class Context:
             return self.data[key]
         except KeyError:
             if not self.root:
-                self.parent.get(key)
+                return self.parent.get(key)
             else:
                 raise KeyError(f"{key} is not defined")
     
