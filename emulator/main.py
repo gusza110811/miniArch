@@ -200,10 +200,9 @@ if __name__ == "__main__":
 
     try:
         emulator.main(code)
-    except:
-        pass
-    time.sleep(0.5)
-    termmagic.reset()
+    finally:
+        time.sleep(0.5)
+        termmagic.reset()
     print("")
 
     emulator.dump()
