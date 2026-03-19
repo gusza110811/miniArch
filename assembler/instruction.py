@@ -246,6 +246,33 @@ class Sub(Instruction):
         return bytes(out)
 register("sub",Sub)
 
+class Out(Instruction):
+    def get(self, pc, size=2):
+        countcmp = self.check_count(2)
+        if countcmp:
+            return Err(("not enough" if countcmp == -1 else "too many") + " parameter",-1,f"expected 2, got {len(self.args)}")
+        dest = self.args[0]
+        src = self.args[1]
+        destval = dest.value
+        srcval = src.value
+        destT = dest.__class__
+        srcT = src.__class__
+
+        out = bytearray()
+
+        if destT != Immediate:
+            return Err("unsupported operand",0,"port address must be an immediate value")
+        if srcT != Register:
+            return Err("unsupported operand",0,"source must be a register")
+        
+        if destval > 65535:
+            return Err("Immediate value too large",0,f"{dest.value} does not fit in 16 bit")
+
+        return bytes([
+            0x1d, srcval,
+        ]) + destval.to_bytes(2)
+register("out",Out)
+
 class Halt(Instruction):
     def get(self, pc, size=2):
         if self.check_count(0):

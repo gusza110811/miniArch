@@ -85,6 +85,10 @@ class Executor:
                     addr = (get(dest-4)<<4)+fetchs(2)
                 memory.storew(addr,get(source))
 
+            case insts.out:
+                value = get(source)
+                io.write(fetchs(2),value)
+
             case insts.add:
                 set(dest,get(dest)+get(source))
             case insts.addi4:

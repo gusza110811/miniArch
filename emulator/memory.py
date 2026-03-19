@@ -87,38 +87,62 @@ class Memory:
 
 class Port:
     def __init__(self):pass
-    def write(self):pass
+    def write(self, value:int):pass
     def read(self):pass
 
-class uartDev:
-    def __init__(self):
+class dbgComDev:
+    def __init__(self, getPort):
         self.inbuffer = deque()
-        self.outbuffer = ''
+        self.outbuffer = deque()
         self.stdin = sys.stdin
 
-        self.rx_ready = False
-        self.tx_ready = True
-    def inputThread(self):
-        self.inbuffer.append(self.stdin.read(1))
-        self.rx_ready = True
+        port:Port = getPort()
+        port.read = self.read
+        port.write = self.write
+
+        self.inputThread = threading.Thread(target=self.input,daemon=True)
+        self.outputThread = threading.Thread(target=self.output,daemon=True)
+
+        self.inputThread.start()
+        self.outputThread.start()
+
+    def input(self):
+        while 1:
+            self.inbuffer.append(self.stdin.read(1))
+            self.rx_ready = True
     
-    def outputThread(self):
-        if self.outbuffer:
-            self.tx_ready = False
-            print(self.outbuffer,end="",flush=True)
-            self.outbuffer = ''
-            self.tx_ready = True
+    def output(self):
+        while 1:
+            if self.outbuffer:
+                print(chr(self.outbuffer.popleft()),end="",flush=True)
+    
+    def read(self):
+        if self.inbuffer:
+            return self.inbuffer.popleft()
+        else:
+            return 0
+    
+    def write(self, value:int):
+        self.outbuffer.append(value)
 
 class IO:
     # ~64k ports
     # 0x0300 - 0x030F : UART
     # 0x0310 - 0x031F : Timer
+    # 0xFFFF          : Debug Console
     def __init__(self):
-        self.nextPort = 0x300
+        self.nextPort = 0xffff
         self.ports:dict[int,Port] = {}
+
+        self.dbg = dbgComDev(self.getPort)
     
     def getPort(self):
         port = Port()
         self.ports[self.nextPort] = port
         self.nextPort += 1
         return port
+    
+    def write(self, portid:int, value:int):
+        port = self.ports.get(portid)
+        if port:
+            port.write(value)

@@ -2,6 +2,7 @@ from memory import Memory, IO
 import termmagic
 from execute import Executor, OpcodeFault
 from instructions import Instructions
+import time
 
 AX, BX, CX, DX, CS, DS, SS, ES, SP, BP = 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
 
@@ -200,6 +201,8 @@ if __name__ == "__main__":
         emulator.main(code)
     finally:
         termmagic.reset()
+    time.sleep(0.5)
+    print("")
 
     emulator.dump()
     if trace:

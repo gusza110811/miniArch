@@ -525,8 +525,8 @@ class Transformer(t):
             super().eval()
             if len(self.value) != 1:
                 raise ValueError("CHAR must be a single character")
-            self.value = ord(self.value)
-            return self.value
+            value = ord(self.value)
+            return value
 
     class Number(Leaf):
         def __init__(self, token:lark.Token):
