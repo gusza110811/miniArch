@@ -145,4 +145,4 @@ class IO:
     def write(self, portid:int, value:int):
         port = self.ports.get(portid)
         if port:
-            port.write(value)
+            port.write(value&0xFF)

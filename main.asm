@@ -3,18 +3,22 @@
 ; DS = SS = ES = 0
 
 func main {
+    console = 0xffff
+
     mov ax, 'H'
-    out 0xFFFF, ax
+    out console, ax
     mov ax, 'e'
-    out 0xFFFF, ax
+    out console, ax
     mov ax, 'l'
-    out 0xFFFF, ax
+    out console, ax
     mov ax, 'l'
-    out 0xFFFF, ax
+    out console, ax
     mov ax, 'o'
-    out 0xFFFF, ax
+    out console, ax
+    mov ax, '\r'
+    out console, ax
     mov ax, '\n'
-    out 0xFFFF, ax
+    out console, ax
 
     halt
 }

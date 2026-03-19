@@ -518,7 +518,11 @@ class Transformer(t):
             super().__init__(value)
             self.value = value[1:-1]
         def eval(self):
-            self.value = self.value.replace(r"\n","\n").replace(r"\t","\t").replace(r"\\","\\").replace(r"\"","\"")
+            self.value = self.value.replace(r"\n","\n")\
+                .replace(r"\r","\r")\
+                .replace(r"\t","\t")\
+                .replace(r"\\","\\")\
+                .replace(r"\"","\"")
             return self.value
     class CHAR(STRING):
         def eval(self):

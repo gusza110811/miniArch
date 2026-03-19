@@ -189,6 +189,7 @@ def writeTrace(filename:str, trace:list):
 
 if __name__ == "__main__":
     termmagic.disable_buffering()
+    termmagic.disable_lfcrlf()
     emulator = Emulator()
 
     trace = True
@@ -199,9 +200,10 @@ if __name__ == "__main__":
 
     try:
         emulator.main(code)
-    finally:
-        termmagic.reset()
+    except:
+        pass
     time.sleep(0.5)
+    termmagic.reset()
     print("")
 
     emulator.dump()
