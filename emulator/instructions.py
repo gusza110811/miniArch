@@ -1,6 +1,5 @@
 import enum
 
-
 class Instructions(enum.Enum):
     # instruction format
     # opcode (1B)
@@ -56,8 +55,8 @@ class Instructions(enum.Enum):
     # distance encoded in dest descriptor (in order): rel8, rel16, abs16 or seg:abs16
     # condition encoded in source descriptor (in order): On zero(0), On not zero, On carry, On not carry, On negative, On positive(5), Always(F)
     jmp  = 0x40
-    call = 0x41#
-    ret  = 0x42#
+    call = 0x41
+    ret  = 0x42
 
     # stack
     pushw= 0x50#
@@ -65,9 +64,9 @@ class Instructions(enum.Enum):
     popw = 0x52#
     popb = 0x53#
     pushf= 0x54 # flags #
-    popf = 0x55 # flags #
-    pusha= 0x5E
-    popa = 0x5F
+    popf = 0x55#
+    pusha= 0x5E#
+    popa = 0x5F#
 
     # flags
     clz  = 0x60#

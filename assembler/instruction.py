@@ -371,8 +371,10 @@ class Jump_generic(Instruction):
 register("jmp",Jump_generic)
 class Jz(Jump_generic): condition = 0x0
 register("jz", Jz)
+register("je", Jz)
 class Jnz(Jump_generic): condition = 0x1
 register("jnz", Jnz)
+register("jne", Jnz)
 class Jc(Jump_generic): condition = 0x2
 register("jc", Jc)
 class Jnc(Jump_generic): condition = 0x3
@@ -387,8 +389,10 @@ class Call_generic(Jump_generic): op = 0x41
 register("call",Call_generic)
 class Bz(Jump_generic): condition = 0x0
 register("bz", Bz)
+register("be", Bz)
 class Bnz(Jump_generic): condition = 0x1
 register("bnz", Bnz)
+register("bne", Bnz)
 class Bc(Jump_generic): condition = 0x2
 register("bc", Bc)
 class Bnc(Jump_generic): condition = 0x3
