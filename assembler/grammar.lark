@@ -5,11 +5,16 @@ start: statement+
     | directive
     | labeldef
     | scope
-    | instruction
 
-code_block: "func " IDENTIFIER scope
+code_block: "func " IDENTIFIER code_scope
+
+?code_scope: "{" code_statement* "}" -> scope
 
 scope: "{" statement* "}"
+
+?code_statement:
+    | instruction
+    | labeldef
 
 constantdef: ["const"] IDENTIFIER "=" expr
 labeldef: IDENTIFIER ":"
@@ -66,7 +71,7 @@ literal: BINARY
 
 symbol: IDENTIFIER
 
-instruction: INST (parameter ("," parameter)?)? "\n"
+instruction: IDENTIFIER (parameter ("," parameter)?)? "\n"
 
 ?parameter: register
     | immediate
@@ -97,21 +102,6 @@ BINARY: /0b[01_]+/
 DECIMAL: /[0-9_]+/
 STRING: ESCAPED_STRING
 IDENTIFIER: /[a-zA-Z_][a-zA-Z0-9_]*/
-
-INST: "mov"i
-    | "out"i
-    | "add"i
-    | "sub"i
-
-    | "jmp"i
-    | "jz"i
-    | "jnz"i
-    | "jc"i
-    | "jnc"i
-    | "jn"i
-    | "jnn"i
-    | "jp"i
-    | "halt"i
 
 CHAR: "'" /.*?/ /(?<!\\)(\\\\)*?/ "'"
 

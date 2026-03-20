@@ -11,23 +11,23 @@ class Assembler:
 
     def main(self, code:str, filename="<main>"):
         codelns = code.split("\n")
-        try:
-            tree = self.parser.parse(code,filename)
-        except lark.exceptions.UnexpectedCharacters as e:
-            line = e.line -1 if e.line > 0 else -1
-            col = e.column -1 if e.column > 0 else -1
-            msg = "unexpected character at line"
-            match e.char:
-                case "{":
-                    msg = "unmatched braces"
-                case "\"":
-                    msg = "unmatched quote"
-                case "'":
-                    msg = "unmatched quote"
-            print(color.fg.MAGENTA + f"{msg} {line+1} char {col+1}")
-            print(color.RESET + "  "+codelns[line])
-            print(color.fg.RED + "  "+" "*(col)+"^")
-            return None
+        # try:
+        tree = self.parser.parse(code,filename)
+        # except lark.exceptions.UnexpectedCharacters as e:
+        #     line = e.line -1 if e.line > 0 else -1
+        #     col = e.column -1 if e.column > 0 else -1
+        #     msg = "unexpected character at line"
+        #     match e.char:
+        #         case "{":
+        #             msg = "unmatched braces"
+        #         case "\"":
+        #             msg = "unmatched quote"
+        #         case "'":
+        #             msg = "unmatched quote"
+        #     print(color.fg.MAGENTA + f"{msg} {line+1} char {col+1}")
+        #     print(color.RESET + "  "+codelns[line])
+        #     print(color.fg.RED + "  "+" "*(col)+"^")
+        #     return None
 
         if tree is None:
             return
