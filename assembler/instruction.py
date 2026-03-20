@@ -335,6 +335,7 @@ register("inp",Inp)
 register("in",Inp)
 
 class Jump_generic(Instruction):
+    op = 0x40
     condition = 0xf
 
     def get(self, pc, size=2):
@@ -345,7 +346,7 @@ class Jump_generic(Instruction):
         addrval = addr.value
         addrT = addr.__class__
 
-        out = bytearray([0x40])
+        out = bytearray([self.op])
 
         if addrT == Register or addrT == IndirectDereference:
             return Err("unsupported operand",0,"target must be an immediate value or a dereference for absolute jump")
@@ -381,6 +382,29 @@ register("jn", Jn)
 class Jp(Jump_generic): condition = 0x5
 register("jp", Jp)
 register("jnn", Jp)
+
+class Call_generic(Jump_generic): op = 0x41
+register("call",Call_generic)
+class Bz(Jump_generic): condition = 0x0
+register("bz", Bz)
+class Bnz(Jump_generic): condition = 0x1
+register("bnz", Bnz)
+class Bc(Jump_generic): condition = 0x2
+register("bc", Bc)
+class Bnc(Jump_generic): condition = 0x3
+register("bnc", Bnc)
+class Bn(Jump_generic): condition = 0x4
+register("bn", Bn)
+class Bp(Jump_generic): condition = 0x5
+register("bp", Bp)
+register("bnn", Bp)
+
+class Ret(Instruction):
+    def get(self, pc, size=2):
+        if self.check_count(0):
+            return Err("too many parameter",0,"`halt` does not take any parameter")
+        return b"\x42\x00"
+register("ret",Ret)
 
 class Halt(Instruction):
     def get(self, pc, size=2):

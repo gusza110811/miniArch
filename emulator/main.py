@@ -88,6 +88,25 @@ class Emulator:
         val = int.from_bytes(tmp,"little",signed=signed)
         self.params.append(val)
         return val
+    
+    def pushb(self, value:int):
+        self.registers[SP] -= 1
+        self.check(SP)
+        self.memory.storeb(self.registers[SP] | (self.registers[SS] << 4),value)
+    def pushw(self, value:int):
+        self.registers[SP] -= 2
+        self.check(SP)
+        self.memory.storew(self.registers[SP] | (self.registers[SS] << 4),value)
+    def popb(self):
+        val = self.memory.loadb(self.registers[SP] | (self.registers[SS] << 4))
+        self.registers[SP] += 1
+        self.check(SP)
+        return val
+    def popw(self):
+        val = self.memory.loadw(self.registers[SP] | (self.registers[SS] << 4))
+        self.registers[SP] += 2
+        self.check(SP)
+        return val
 
     def main(self,initcode:bytearray):
         self.memory = Memory(initcode)

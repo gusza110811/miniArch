@@ -37,7 +37,7 @@ class Ram:
 
     def storew(self, address:int, value:int):
         self.storeb(address,value)
-        self.storeb(address,value>>8)
+        self.storeb(address+1,value>>8)
 
 class Memory:
     def __init__(self,rom:bytearray):

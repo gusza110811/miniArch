@@ -2,21 +2,10 @@
 ; CS = F000
 ; DS = SS = ES = 0
 
-; hardcoded print
-; will use call/ret later
-func hardprint {
-    mov bx, text
-    mov dx, 0xffff
-    loop:
-        mov ax, [b cs:bx]
-        cmp ax, 0
-        jz init
-        out dx, ax
-        add bx, 1
-    jmp loop
-}
-
 func init {
+    mov bx, text
+    mov ds, cs
+    call print
     mov bx, 0xffff
 }
 
@@ -54,4 +43,16 @@ func bksp {
     jmp main
 }
 
-text:   .asciiz "Test!!!\r\n"
+func print {
+    mov dx, 0xffff
+    loop:
+        mov ax, [b bx]
+        cmp ax, 0
+        jz done
+        out dx, ax
+        add bx, 1
+    jmp loop
+    done:   ret
+}
+
+text:   .asciiz "Echo Console!!!\r\n"

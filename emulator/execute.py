@@ -11,6 +11,10 @@ class Executor:
         self.emulator = emulator
     def execute(self, inst:insts):
         emulator = self.emulator
+        pushb = self.emulator.pushb
+        pushw = self.emulator.pushw
+        popb = self.emulator.popb
+        popw = self.emulator.popw
         fetchs = self.emulator.fetchs
         memory = emulator.memory
         io = emulator.io
@@ -162,6 +166,52 @@ class Executor:
                 if seg:
                     set(CS,seg)
                 emulator.pc = address
+            case insts.call:
+                cond = source
+                distance = dest
+                address = None
+                seg = None
+                match distance:
+                    case 0:
+                        address = ip + fetchs(1,True)
+                    case 1:
+                        address = ip + fetchs(2,True)
+                    case 2:
+                        address = fetchs(2)
+                    case 3:
+                        seg = fetchs(2)
+                        address = fetchs(2)
+                match cond:
+                    case 0:
+                        if not flags[Z]:
+                            return
+                    case 1:
+                        if flags[Z]:
+                            return
+                    case 2:
+                        if not flags[C]:
+                            return
+                    case 3:
+                        if flags[C]:
+                            return
+                    case 4:
+                        if not flags[N]:
+                            return
+                    case 5:
+                        if flags[N]:
+                            return
+                    case 16:
+                        pass
+                
+                if seg:
+                    pushw(get(CS))
+                    set(CS,seg)
+                pushw(emulator.pc)
+                emulator.pc = address
+            case insts.ret:
+                addr = popw()
+                emulator.pc = addr
+
             case insts.halt:
                 emulator.running = False
         if inst in instcheck:
