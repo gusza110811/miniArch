@@ -2,10 +2,22 @@
 ; CS = F000
 ; DS = SS = ES = 0
 
-; print all printable* ascii in reverse
+; hardcoded print
+; will use call/ret later
+func hardprint {
+    mov bx, text
+    mov dx, 0xffff
+    loop:
+        mov ax, [b cs:bx]
+        cmp ax, 0
+        jz init
+        out dx, ax
+        add bx, 1
+    jmp loop
+}
+
 func init {
     mov bx, 0xffff
-    ; falls through into main
 }
 
 func main {
@@ -14,10 +26,10 @@ func main {
     jz main
 
     cmp ax, '\n'
-    jz lfcrlf
+    jz crlf
 
     cmp ax, '\r'
-    jz crcrlf
+    jz crlf
 
     cmp ax, '\b'
     jz bksp
@@ -26,16 +38,10 @@ func main {
     jmp main
 }
 
-func lfcrlf {
+func crlf {
     mov dx, '\r'
     out bx, dx
-    out bx, ax
-    jmp main
-}
-
-func crcrlf {
     mov dx, '\n'
-    out bx, ax
     out bx, dx
     jmp main
 }
@@ -47,3 +53,5 @@ func bksp {
     out bx, ax
     jmp main
 }
+
+text:   .asciiz "Test!!!\r\n"

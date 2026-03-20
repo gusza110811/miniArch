@@ -84,7 +84,7 @@ instruction: IDENTIFIER (parameter ("," parameter)?)? "\n"
 
 register: REGISTER
 immediate: expr
-?address: "[" [ADDR_SIZE " "] [BASES "+"] "bx"i "]" -> indirect_addr
+?address: "[" [ADDR_SIZE " "] [BASES ":"] "bx"i "]" -> indirect_addr
     | "[" [ADDR_SIZE " "] [BASES SIGN] expr "]" -> direct_addr
 
 // terminals

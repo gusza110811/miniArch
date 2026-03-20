@@ -66,6 +66,8 @@ class Instructions(enum.Enum):
     popb = 0x53#
     pushf= 0x54 # flags #
     popf = 0x55 # flags #
+    pusha= 0x5E
+    popa = 0x5F
 
     # flags
     clz  = 0x60#

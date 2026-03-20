@@ -164,15 +164,15 @@ class Emulator:
                         if repeat_count > 1:
                             result.append(f"... {repeat_count} times")
                         else:
-                            result.append("... repeated")
+                            result.append("...repeated")
                         printed = True
                     repeat_count = 0
 
-                result.append(f"{i:05X}: x{value:02X}")
+                result.append(f"{i:05X}: x{value:02X} ")
                 prev_value = value
 
         if repeat_count > 0:
-            result.append(f"    ... repeated to {(end):04X}")
+            result.append(f"...repeated to {(end):04X}")
         
         return result
 
