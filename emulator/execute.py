@@ -2,6 +2,7 @@ from typing import TYPE_CHECKING
 from instructions import Instructions as insts
 
 AX, BX, CX, DX, CS, DS, SS, ES, SP, BP = 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
+Z, C, N = 0, 1, 2
 
 class OpcodeFault(Exception):pass
 
@@ -15,6 +16,8 @@ class Executor:
         io = emulator.io
         get = emulator.get
         set = emulator.set
+        flags = emulator.flags
+        ip = emulator.ip
         check = emulator.check
         instnovariant = [insts.halt]
         instcheck = [
@@ -106,6 +109,46 @@ class Executor:
             case insts.subi:
                 set(dest,get(dest)-fetchs(2))
 
+            case insts.jmp:
+                cond = source
+                distance = dest
+                address = None
+                seg = None
+                match distance:
+                    case 0:
+                        address = ip + fetchs(1,True)
+                    case 1:
+                        address = ip + fetchs(2,True)
+                    case 2:
+                        address = fetchs(2)
+                    case 3:
+                        seg = fetchs(2)
+                        address = fetchs(2)
+                match cond:
+                    case 0:
+                        if not flags[Z]:
+                            return
+                    case 1:
+                        if flags[Z]:
+                            return
+                    case 2:
+                        if not flags[C]:
+                            return
+                    case 3:
+                        if flags[C]:
+                            return
+                    case 4:
+                        if not flags[N]:
+                            return
+                    case 5:
+                        if flags[N]:
+                            return
+                    case 16:
+                        pass
+                
+                if seg:
+                    set(CS,seg)
+                emulator.pc = address
             case insts.halt:
                 emulator.running = False
         if inst in instcheck:

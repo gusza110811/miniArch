@@ -268,6 +268,54 @@ class Out(Instruction):
         ])
 register("out",Out)
 
+class Jump_generic(Instruction):
+    condition = 0xf
+
+    def get(self, pc, size=2):
+        countcmp = self.check_count(1)
+        if countcmp:
+            return Err(("not enough" if countcmp == -1 else "too many") + " parameter",-1,f"expected 1, got {len(self.args)}")
+        addr = self.args[0]
+        addrval = addr.value
+        addrT = addr.__class__
+
+        out = bytearray([0x40])
+
+        if addrT == Register or addrT == IndirectDereference:
+            return Err("unsupported operand",0,"target must be an immediate value or a dereference for absolute jump")
+        
+        if addrT == Immediate:
+            relAddr = addrval-pc
+            if -128 <= relAddr <= 127:
+                out.append(self.condition)
+                out.extend(relAddr.to_bytes(1,signed=True))
+            elif -32768 <= relAddr <= 32767:
+                out.append(0x10 | self.condition)
+                out.extend(relAddr.to_bytes(2,byteorder='little',signed=True))
+            else:
+                return Err("immediate value too large",0,f"{relAddr} ({addr} relative to {pc}) does not fit in signed 16 bit")
+        elif addrT == Dereference:
+            if addrval > 65535:
+                return Err("immediate value too large",0,f"{addr} does not fit in 16 bit")
+
+            out.append(0x20 | self.condition)
+            out.extend(addrval.to_bytes(2,byteorder='little'))
+        return out
+register("jmp",Jump_generic)
+class Jz(Jump_generic): condition = 0x0
+register("jz", Jz)
+class Jnz(Jump_generic): condition = 0x1
+register("jnz", Jnz)
+class Jc(Jump_generic): condition = 0x2
+register("jc", Jc)
+class Jnc(Jump_generic): condition = 0x3
+register("jnc", Jnc)
+class Jn(Jump_generic): condition = 0x4
+register("jn", Jn)
+class Jp(Jump_generic): condition = 0x5
+register("jp", Jp)
+register("jnn", Jp)
+
 class Halt(Instruction):
     def get(self, pc, size=2):
         if self.check_count(0):

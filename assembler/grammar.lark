@@ -102,6 +102,15 @@ INST: "mov"i
     | "out"i
     | "add"i
     | "sub"i
+
+    | "jmp"i
+    | "jz"i
+    | "jnz"i
+    | "jc"i
+    | "jnc"i
+    | "jn"i
+    | "jnn"i
+    | "jp"i
     | "halt"i
 
 CHAR: "'" /.*?/ /(?<!\\)(\\\\)*?/ "'"

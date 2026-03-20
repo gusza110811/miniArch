@@ -53,17 +53,19 @@ class Instructions(enum.Enum):
     sxtbw= 0x3C#
 
     # control flow
-    # distance encoded in dest descriptor: rel8, rel16, abs16 or seg:abs16
-    # condition encoded in source descriptor: On zero, On carry, On negative, Always, On not zero, On not carry, On positive
-    jmp  = 0x41#
-    call = 0x42#
-    ret  = 0x43#
+    # distance encoded in dest descriptor (in order): rel8, rel16, abs16 or seg:abs16
+    # condition encoded in source descriptor (in order): On zero(0), On not zero, On carry, On not carry, On negative, On positive(5), Always(F)
+    jmp  = 0x40
+    call = 0x41#
+    ret  = 0x42#
 
     # stack
     pushw= 0x50#
     pushb= 0x51#
     popw = 0x52#
     popb = 0x53#
+    pushf= 0x54 # flags #
+    popf = 0x55 # flags #
 
     # flags
     clz  = 0x60#

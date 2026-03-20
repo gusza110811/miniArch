@@ -202,7 +202,7 @@ if __name__ == "__main__":
     try:
         emulator.main(code)
     finally:
-        time.sleep(0.5)
+        while emulator.io.dbg.outbuffer:pass
         termmagic.reset()
     print("")
 
