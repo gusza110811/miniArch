@@ -13,8 +13,11 @@ code_block: "func " IDENTIFIER code_scope
 scope: "{" statement* "}"
 
 ?code_statement:
+    | directive
     | instruction
     | labeldef
+    | scope
+    | code_block
 
 constantdef: ["const"] IDENTIFIER "=" expr
 labeldef: IDENTIFIER ":"
@@ -28,6 +31,8 @@ labeldef: IDENTIFIER ":"
     | ".zero" expr -> zero
     | ".org" expr "\n" -> org
     | ".align" expr -> align
+    | ".export" IDENTIFIER ["->" IDENTIFIER] -> export
+    | ".export" constantdef -> exportdef
     | "export" IDENTIFIER ["->" IDENTIFIER] -> export
     | "export" constantdef -> exportdef
 

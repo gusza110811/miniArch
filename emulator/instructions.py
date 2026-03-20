@@ -16,7 +16,7 @@ class Instructions(enum.Enum):
     ldb  = 0x19
     stw  = 0x1A
     ldw  = 0x1B
-    inp  = 0x1C#
+    inp  = 0x1C
     out  = 0x1D
 
     # arithmetic & logic (updates Z/C/N flags)
@@ -29,10 +29,10 @@ class Instructions(enum.Enum):
     subi8= 0x26
     subi = 0x27
     # cmp is equivalent to sub but doesnt save the value
-    cmp  = 0x28#
-    cmpi4= 0x29#
-    cmpi8= 0x2A#
-    cmpi = 0x2B#
+    cmp  = 0x28
+    cmpi4= 0x29
+    cmpi8= 0x2A
+    cmpi = 0x2B
     incax= 0x2C#
     incbx= 0x2D#
     inccx= 0x2E#

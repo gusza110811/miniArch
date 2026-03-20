@@ -167,7 +167,7 @@ class Transformer(t):
         def eval(self, context):
             if self.name:
                 self.name = self.name.eval()
-                context.set(self.name,0xABCD)
+                context.set(self.name,0x8000)
             return self.scope.eval(context,"code")
         
         def collect(self,context):
@@ -371,7 +371,7 @@ class Transformer(t):
             return f"label {self.children[0]}"
         
         def eval(self, context):
-            context.set(self.children[0].eval(),0xADDE)
+            context.set(self.children[0].eval(),0x8000)
         
         def collect(self, context):
             context.add_label(self.children[0].eval())
@@ -522,6 +522,7 @@ class Transformer(t):
                 .replace(r"\r","\r")\
                 .replace(r"\t","\t")\
                 .replace(r"\\","\\")\
+                .replace(r"\b","\b")\
                 .replace(r"\"","\"")
             return self.value
     class CHAR(STRING):

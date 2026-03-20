@@ -3,15 +3,47 @@
 ; DS = SS = ES = 0
 
 ; print all printable* ascii in reverse
-func main {
-    mov ax, 127
+func init {
     mov bx, 0xffff
-    loop:
-    out bx, ax
-    sub ax, 1
-    jnz loop
-
-    halt
+    ; falls through into main
 }
 
-; *this includes special characters from 1-31
+func main {
+    in ax, bx
+    cmp ax, 0
+    jz main
+
+    cmp ax, '\n'
+    jz lfcrlf
+
+    cmp ax, '\r'
+    jz crcrlf
+
+    cmp ax, '\b'
+    jz bksp
+
+    out bx, ax
+    jmp main
+}
+
+func lfcrlf {
+    mov dx, '\r'
+    out bx, dx
+    out bx, ax
+    jmp main
+}
+
+func crcrlf {
+    mov dx, '\n'
+    out bx, ax
+    out bx, dx
+    jmp main
+}
+
+func bksp {
+    mov dx, ' '
+    out bx, ax
+    out bx, dx
+    out bx, ax
+    jmp main
+}

@@ -246,7 +246,72 @@ class Sub(Instruction):
         return bytes(out)
 register("sub",Sub)
 
+class Cmp(Instruction):
+    def get(self, pc, size=2):
+        countcmp = self.check_count(2)
+        if countcmp:
+            return Err(("not enough" if countcmp == -1 else "too many") + " parameter",-1,f"expected 2, got {len(self.args)}")
+        dest = self.args[0]
+        src = self.args[1]
+        destval = dest.value
+        srcval = src.value
+        destT = dest.__class__
+        srcT = src.__class__
+
+        out = bytearray()
+
+        if destT == Immediate:
+            return Err("unsupported operand",0,"cannot add to immediate value")
+        if destT == Dereference or destT == IndirectDereference:
+            return Err("unsupported operand",0,"cannot add directly to memory")
+        if srcT == Dereference or srcT == IndirectDereference:
+            return Err("unsupported operand",0,"cannot add directly from memory")
+        
+        dest:Register
+        if srcT == Register:
+            out.append(0x28)
+            out.append((destval<<4) | (srcval))
+        elif srcT == Immediate:
+            if srcval < 16:
+                out.append(0x29)
+                out.append((destval<<4) | (srcval))
+            elif srcval < 256:
+                out.append(0x2A)
+                out.append(destval<<4)
+                out.append(srcval)
+            elif srcval < 65536:
+                out.append(0x2B)
+                out.append(destval<<4)
+                out.extend(srcval.to_bytes(2,"little"))
+            else:
+                return Err("Immediate value too large",1,f"{src.value} does not fit in 16 bit")
+        
+        return bytes(out)
+register("cmp",Cmp)
+
 class Out(Instruction):
+    def get(self, pc, size=2):
+        countcmp = self.check_count(2)
+        if countcmp:
+            return Err(("not enough" if countcmp == -1 else "too many") + " parameter",-1,f"expected 2, got {len(self.args)}")
+        dest = self.args[0]
+        src = self.args[1]
+        destval = dest.value
+        srcval = src.value
+        destT = dest.__class__
+        srcT = src.__class__
+
+        if srcT != Register:
+            return Err("unsupported operand",0,"port address must be in a register")
+        if destT != Register:
+            return Err("unsupported operand",0,"destination must be a register")
+
+        return bytes([
+            0x1d, (destval << 4) | srcval
+        ])
+register("out",Out)
+
+class Inp(Instruction):
     def get(self, pc, size=2):
         countcmp = self.check_count(2)
         if countcmp:
@@ -264,9 +329,10 @@ class Out(Instruction):
             return Err("unsupported operand",0,"source must be a register")
 
         return bytes([
-            0x1d, (destval << 4) | srcval,
+            0x1c, (destval << 4) | srcval
         ])
-register("out",Out)
+register("inp",Inp)
+register("in",Inp)
 
 class Jump_generic(Instruction):
     condition = 0xf

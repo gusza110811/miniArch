@@ -55,6 +55,20 @@ class Emulator:
         else:
             self.flags[N] = False
     
+    def flag(self,value:int):
+        if value == 0:
+            self.flags[Z] = True
+        else:
+            self.flags[Z] = False
+        if value > 0xFFFF:
+            self.flags[C] = True
+        else:
+            self.flags[C] = False
+        if value < 0:
+            self.flags[N] = True
+        else:
+            self.flags[N] = False
+    
     def get(self,id:int) -> int:
         if id >= len(self.registers):
             raise OpcodeFault
@@ -169,7 +183,7 @@ def writeTrace(filename:str, trace:list):
         "cs", "ds", "ss", "es",
         "sp", "bp"
     ]
-    for item in trace:
+    for item in trace[:10000]:
         file.write(
             (f"{item[0][0]:04X}:{item[0][1]:04X}" +
             (">" if item[1] else " ") +
@@ -186,6 +200,8 @@ def writeTrace(filename:str, trace:list):
             #("  " + f"{item[6][0]:05X} = {item[6][1]:X}" if item[6] else "")
             ).rstrip() + "\n"
         )
+    if len(trace) > 10000:
+        file.write("\n\nfurther trace truncated")
     file.close()
 
 if __name__ == "__main__":
@@ -201,6 +217,8 @@ if __name__ == "__main__":
 
     try:
         emulator.main(code)
+    except KeyboardInterrupt:
+        pass
     finally:
         while emulator.io.dbg.outbuffer:pass
         termmagic.reset()

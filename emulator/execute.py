@@ -19,6 +19,7 @@ class Executor:
         flags = emulator.flags
         ip = emulator.ip
         check = emulator.check
+        flag = emulator.flag
         instnovariant = [insts.halt]
         instcheck = [
             insts.add,insts.addi4,insts.addi8,insts.addi,
@@ -91,6 +92,10 @@ class Executor:
             case insts.out:
                 value = get(source)
                 io.write(get(dest),value)
+            
+            case insts.inp:
+                value = io.read(get(source))
+                set(dest,value)
 
             case insts.add:
                 set(dest,get(dest)+get(source))
@@ -108,6 +113,14 @@ class Executor:
                 set(dest,get(dest)-fetchs(1))
             case insts.subi:
                 set(dest,get(dest)-fetchs(2))
+            case insts.cmp:
+                flag(get(dest)-get(source))
+            case insts.cmpi4:
+                flag(get(dest)-source)
+            case insts.cmpi8:
+                flag(get(dest)-fetchs(1))
+            case insts.cmpi:
+                flag(get(dest)-fetchs(2))
 
             case insts.jmp:
                 cond = source

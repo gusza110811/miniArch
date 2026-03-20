@@ -1,4 +1,5 @@
 import sys, threading
+import waiting
 from collections import deque
 
 class Rom:
@@ -88,7 +89,7 @@ class Memory:
 class Port:
     def __init__(self):pass
     def write(self, value:int):pass
-    def read(self):pass
+    def read(self) -> int:pass
 
 class dbgComDev:
     def __init__(self, getPort):
@@ -108,17 +109,20 @@ class dbgComDev:
 
     def input(self):
         while 1:
-            self.inbuffer.append(self.stdin.read(1))
-            self.rx_ready = True
+            char = self.stdin.read(1)
+            if char == "\x7F":
+                self.inbuffer.append("\b")
+            else:
+                self.inbuffer.append(char)
     
     def output(self):
         while 1:
             if self.outbuffer:
                 print(chr(self.outbuffer.popleft()),end="",flush=True)
-    
+
     def read(self):
         if self.inbuffer:
-            return self.inbuffer.popleft()
+            return ord(self.inbuffer.popleft())
         else:
             return 0
     
@@ -146,3 +150,11 @@ class IO:
         port = self.ports.get(portid)
         if port:
             port.write(value&0xFF)
+    
+    def read(self, portid:int) -> int:
+        port = self.ports.get(portid)
+        if port:
+            val = port.read()
+            return val
+        else:
+            return 0
