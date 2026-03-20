@@ -27,6 +27,7 @@ class Emulator:
             False, # zero
             False, # carry
             False, # negative
+            False, # interrupt enable
         ]
 
         self.running = True

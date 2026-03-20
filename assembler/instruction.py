@@ -258,19 +258,14 @@ class Out(Instruction):
         destT = dest.__class__
         srcT = src.__class__
 
-        out = bytearray()
-
-        if destT != Immediate:
-            return Err("unsupported operand",0,"port address must be an immediate value")
+        if destT != Register:
+            return Err("unsupported operand",0,"port address must be in a register")
         if srcT != Register:
             return Err("unsupported operand",0,"source must be a register")
-        
-        if destval > 65535:
-            return Err("Immediate value too large",0,f"{dest.value} does not fit in 16 bit")
 
         return bytes([
-            0x1d, srcval,
-        ]) + destval.to_bytes(2)
+            0x1d, (destval << 4) | srcval,
+        ])
 register("out",Out)
 
 class Halt(Instruction):

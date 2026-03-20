@@ -87,7 +87,7 @@ class Executor:
 
             case insts.out:
                 value = get(source)
-                io.write(fetchs(2),value)
+                io.write(get(dest),value)
 
             case insts.add:
                 set(dest,get(dest)+get(source))

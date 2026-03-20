@@ -1,6 +1,12 @@
 import enum
 
+
 class Instructions(enum.Enum):
+    # instruction format
+    # opcode (1B)
+    # dest descriptor and src descriptor (1B) for most instructions
+    # parameter (1-2B) for some instructions
+
     # transfer
     rmov = 0x10
     ldi4 = 0x11
@@ -13,7 +19,7 @@ class Instructions(enum.Enum):
     inp  = 0x1C#
     out  = 0x1D
 
-    # arithmetic & logic
+    # arithmetic & logic (updates Z/C/N flags)
     add  = 0x20
     addi4= 0x21
     addi8= 0x22
@@ -22,6 +28,7 @@ class Instructions(enum.Enum):
     subi4= 0x25
     subi8= 0x26
     subi = 0x27
+    # cmp is equivalent to sub but doesnt save the value
     cmp  = 0x28#
     cmpi4= 0x29#
     cmpi8= 0x2A#
@@ -46,23 +53,30 @@ class Instructions(enum.Enum):
     sxtbw= 0x3C#
 
     # control flow
-    # ...s -> rel8
-    # ...  -> rel16
-    # ...a -> abs16
-    # ...l -> seg:abs
-    # condition encoded in source descriptor
-    jmps = 0x40#
+    # distance encoded in dest descriptor: rel8, rel16, abs16 or seg:abs16
+    # condition encoded in source descriptor: On zero, On carry, On negative, Always, On not zero, On not carry, On positive
     jmp  = 0x41#
-    jmpa = 0x42#
-    jmpl = 0x43#
-    calls= 0x44#
-    call = 0x45#
-    ret  = 0x46#
-    calla= 0x47#
-    calll= 0x48#
-    retl = 0x49#
+    call = 0x42#
+    ret  = 0x43#
 
-    halt = 0xFF
+    # stack
+    pushw= 0x50#
+    pushb= 0x51#
+    popw = 0x52#
+    popb = 0x53#
+
+    # flags
+    clz  = 0x60#
+    clc  = 0x61#
+    cln  = 0x62#
+    cli  = 0x63#
+    stz  = 0x64#
+    stc  = 0x65#
+    stn  = 0x66#
+    sti  = 0x67#
+    cla  = 0x6F # clears Z, C and N flags #
+
+    halt = 0xFF # pseudo-instruction for debugging
 
     def __str__(self):
         return self.name
