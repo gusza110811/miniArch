@@ -90,7 +90,7 @@ class Transformer(t):
             self.contexts:list[Context] = []
             for block in self.children:
                 cont = block.eval(context)
-                if cont:
+                if isinstance(cont,Context):
                     self.contexts.append(cont)
             return self.contexts
         
@@ -154,7 +154,7 @@ class Transformer(t):
             return out
         
         def __repr__(self):
-            return "{\n  " + ";\n  ".join([repr(value) for value in self.children[1:]]) + "\n}"
+            return "{\n  " + ";\n  ".join([repr(value) for value in self.children]) + "\n}"
     
     class datagen(codegen):pass
 
@@ -188,17 +188,21 @@ class Transformer(t):
             self.args:list[Transformer.Parameter] = self.children[1:]
 
         def eval(self, context):
-            self.command = self.command.eval()
+            self.commandname = self.command.eval()
         def collect(self, context):
             self.position = context.get_pc()
             processed_args = []
 
             for child in self.args:
                 processed_args.append(child.eval(context))
-            self.out = instruction.Instruction.from_str(self.command, processed_args).get(self.position)
+            self.out = instruction.Instruction.from_str(self.commandname, processed_args).get(self.position)
             if isinstance(self.out, instruction.Err):
-                err_begin = self.args[self.out.pos].get_first_token()
-                err_end = self.args[self.out.pos].get_last_token()
+                if self.out.pos == -1:
+                    err_begin = self.command.get_first_token()
+                    err_end = self.command.get_last_token()
+                else:
+                    err_begin = self.args[self.out.pos].get_first_token()
+                    err_end = self.args[self.out.pos].get_last_token()
                 raise ParseErr(self.out.msg, err_begin.line-1, err_begin.column-1,err_end.end_column-1,self.out.hint)
             context.inc_pc(len(self.out))
 

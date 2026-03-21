@@ -11,6 +11,9 @@ class Err:
 
         if msg == "not implemented":
             self.hint += "\ncome back to writing the assembler you donkey"
+    
+    def __repr__(self):
+        return f"{self.msg} : {self.pos} ; {self.hint}"
 
 map = {}
 
@@ -52,6 +55,10 @@ class Instruction:
 
 class Mov(Instruction):
     def get(self, pc, size=2):
+        countcmp = self.check_count(2)
+        if countcmp:
+            return Err(("not enough" if countcmp == 1 else "too many") + " parameter",-1,f"expected 2, got {len(self.args)}")
+
         dest = self.args[0]
         src = self.args[1]
         destval = dest.value
@@ -164,7 +171,7 @@ class Add(Instruction):
     def get(self, pc, size=2):
         countcmp = self.check_count(2)
         if countcmp:
-            return Err(("not enough" if countcmp == -1 else "too many") + " parameter",-1,f"expected 2, got {len(self.args)}")
+            return Err(("not enough" if countcmp == 1 else "too many") + " parameter",-1,f"expected 2, got {len(self.args)}")
         dest = self.args[0]
         src = self.args[1]
         destval = dest.value
@@ -207,7 +214,7 @@ class Sub(Instruction):
     def get(self, pc, size=2):
         countcmp = self.check_count(2)
         if countcmp:
-            return Err(("not enough" if countcmp == -1 else "too many") + " parameter",-1,f"expected 2, got {len(self.args)}")
+            return Err(("not enough" if countcmp == 1 else "too many") + " parameter",-1,f"expected 2, got {len(self.args)}")
         dest = self.args[0]
         src = self.args[1]
         destval = dest.value
@@ -250,7 +257,7 @@ class Cmp(Instruction):
     def get(self, pc, size=2):
         countcmp = self.check_count(2)
         if countcmp:
-            return Err(("not enough" if countcmp == -1 else "too many") + " parameter",-1,f"expected 2, got {len(self.args)}")
+            return Err(("not enough" if countcmp == 1 else "too many") + " parameter",-1,f"expected 2, got {len(self.args)}")
         dest = self.args[0]
         src = self.args[1]
         destval = dest.value
@@ -293,7 +300,7 @@ class Out(Instruction):
     def get(self, pc, size=2):
         countcmp = self.check_count(2)
         if countcmp:
-            return Err(("not enough" if countcmp == -1 else "too many") + " parameter",-1,f"expected 2, got {len(self.args)}")
+            return Err(("not enough" if countcmp == 1 else "too many") + " parameter",-1,f"expected 2, got {len(self.args)}")
         dest = self.args[0]
         src = self.args[1]
         destval = dest.value
@@ -315,7 +322,7 @@ class Inp(Instruction):
     def get(self, pc, size=2):
         countcmp = self.check_count(2)
         if countcmp:
-            return Err(("not enough" if countcmp == -1 else "too many") + " parameter",-1,f"expected 2, got {len(self.args)}")
+            return Err(("not enough" if countcmp == 1 else "too many") + " parameter",-1,f"expected 2, got {len(self.args)}")
         dest = self.args[0]
         src = self.args[1]
         destval = dest.value
@@ -341,7 +348,7 @@ class Jump_generic(Instruction):
     def get(self, pc, size=2):
         countcmp = self.check_count(1)
         if countcmp:
-            return Err(("not enough" if countcmp == -1 else "too many") + " parameter",-1,f"expected 1, got {len(self.args)}")
+            return Err(("not enough" if countcmp == 1 else "too many") + " parameter",-1,f"expected 1, got {len(self.args)}")
         addr = self.args[0]
         addrval = addr.value
         addrT = addr.__class__
@@ -408,7 +415,7 @@ class Jmpf(Instruction):
     def get(self, pc, size=2):
         countcmp = self.check_count(2)
         if countcmp:
-            return Err(("not enough" if countcmp == -1 else "too many") + " parameter",-1,f"expected 2, got {len(self.args)}")
+            return Err(("not enough" if countcmp == 1 else "too many") + " parameter",-1,f"expected 2, got {len(self.args)}")
         if not self.check_type(0,Immediate):
             return Err("unsupported operand",0,"target segment must be an immediate value")
         if not self.check_type(1,Immediate):

@@ -1,21 +1,23 @@
 start: statement+
 
-?statement: code_block
-    | constantdef
+?statement: constantdef
     | directive
     | labeldef
     | scope
+    | directive
+    | code_block
+    | labeldef
 
-code_block: "func " IDENTIFIER code_scope
+code_block: ["func "] IDENTIFIER code_scope
 
 ?code_scope: "{" code_statement* "}" -> scope
 
 scope: "{" statement* "}"
 
-?code_statement:
-    | directive
+?code_statement: directive
     | instruction "\n"
     | labeldef
+    | constantdef
 
 constantdef: ["const"] IDENTIFIER "=" expr
 labeldef: IDENTIFIER ":"

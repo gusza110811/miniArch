@@ -1,18 +1,32 @@
 ; rom code is mapped to F0000-FFFFF
 ; CS = FFFF
 ; DS = SS = ES = 0
+const buffer = 0x100
 
 func init {
     mov bx, text
     mov ds, cs
     call print
-    mov bx, 0xffff
 }
 
 func main {
-    in ax, bx
+    mov ds, 0
+    mov bx, buffer
+    call input
+    mov bx, buffer
+    call print
+    jmp main
+}
+
+; cx = buffer
+func input {
+    mov dx, 0xffff
+    in ax, dx
     cmp ax, 0
-    jz main
+    jz input
+
+    cmp ax, '\b'
+    bz bksp
 
     cmp ax, '\n'
     jz crlf
@@ -20,43 +34,57 @@ func main {
     cmp ax, '\r'
     jz crlf
 
-    cmp ax, '\b'
-    jz bksp
+    out dx, ax
 
-    out bx, ax
-    jmp main
+    mov [b bx], ax
+    add bx, 1
+    jmp input
 }
 
 func crlf {
-    mov dx, '\r'
-    out bx, dx
-    mov dx, '\n'
-    out bx, dx
-    jmp main
+    mov cx, '\r'
+    out dx, cx
+    mov cx, '\n'
+    out dx, cx
+    mov ax, '\n'
+    mov [b bx], ax
+    ret
 }
 
+; affect cx, bx--
 func bksp {
-    mov dx, ' '
-    out bx, ax
-    out bx, dx
-    out bx, ax
-    jmp main
+    mov cx, ' '
+    out dx, ax
+    out dx, cx
+    out dx, ax
+    sub bx, 1
+    mov ax, [b bx]
+    jmp input
 }
 
+; affects ax, bx, cx, dx
 func print {
     mov dx, 0xffff
+    mov cx, '\r'
     loop:
         mov ax, [b bx]
         cmp ax, 0
         jz done
-        out dx, ax
         add bx, 1
+        cmp ax, '\n'
+        jz lfcrlf
+        out dx, ax
+        jmp loop
+    lfcrlf:
+        out dx, cx
+        out dx, ax
     jmp loop
+
     done:
     ret
 }
 
-text:   .asciiz "Echo Console!!!\r\n"
+text:   .asciiz "Echo Console!!!\n"
 
 .align 0xFFF0
 func reset {
