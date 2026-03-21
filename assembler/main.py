@@ -1,5 +1,6 @@
 import parser, constructor, color
 import os, sys
+import argparse
 import lark.exceptions
 
 __dir__ = os.path.dirname(__file__)
@@ -11,6 +12,7 @@ class Assembler:
 
     def main(self, code:str, filename="<main>"):
         codelns = code.split("\n")
+        tree = None
         try:
             tree = self.parser.parse(code,filename)
         except lark.exceptions.UnexpectedCharacters as e:
@@ -28,6 +30,14 @@ class Assembler:
             print(color.RESET + "  "+codelns[line])
             print(color.fg.RED + "  "+" "*(col)+"^")
             return None
+        except lark.exceptions.UnexpectedEOF as e:
+            line = e.line -1 if e.line > 0 else -1
+            col = e.column -1 if e.column > 0 else -1
+            msg = "unexpected end of file"
+            print(color.fg.MAGENTA + f"{msg}")
+            print(color.RESET + "  "+codelns[line])
+            print(color.fg.RED + "  "+" "*(col)+"^")
+            print(color.fg.GRAY + f"There may be unmatched braces in the source")
 
         if tree is None:
             return
@@ -56,4 +66,26 @@ def test():
             file.write(out)
 
 if __name__ == "__main__":
-    test()
+    argparser = argparse.ArgumentParser()
+
+    argparser.add_argument("source",help="source assembly")
+    argparser.add_argument("--output","-o",nargs="?",help="output file",default=None)
+
+    args = argparser.parse_args()
+
+    source:str = args.source
+    dest = args.output
+
+    if dest is None:
+        dest = ".".join(source.split(".")[:-1]) + ".bin"
+
+    if not os.path.isfile(source):
+        sys.exit(f"")
+
+    code = open(source).read()
+
+    assembler = Assembler()
+    out = assembler.main(code,source)
+    if out:
+        with open(dest,"wb") as file:
+            file.write(out)

@@ -2,7 +2,8 @@ from memory import Memory, IO
 import termmagic
 from execute import Executor, OpcodeFault
 from instructions import Instructions
-import time
+import argparse
+import os, sys
 
 AX, BX, CX, DX, CS, DS, SS, ES, SP, BP = 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
 
@@ -181,13 +182,13 @@ class Emulator:
                 if repeat_count > 0:
                     if not printed:
                         if repeat_count > 1:
-                            result.append(f"... {repeat_count} times")
+                            result.append(f"...{repeat_count} times")
                         else:
-                            result.append("...repeated")
+                            result.append("...repeated  ")
                         printed = True
                     repeat_count = 0
 
-                result.append(f"{i:05X}: x{value:02X} ")
+                result.append(f"{i:05X}: x{value:02X}   ")
                 prev_value = value
 
         if repeat_count > 0:
@@ -220,21 +221,70 @@ def writeTrace(filename:str, trace:list):
             ).rstrip() + "\n"
         )
     if len(trace) > 10000:
-        file.write("\n\nfurther trace truncated")
+        file.write("\n...truncated...\n\n")
+    if len(trace) > 20000:
+        for item in trace[-10000:]:
+            file.write(
+                (f"{item[0][0]:04X}:{item[0][1]:04X}" +
+                (">" if item[1] else " ") +
+                "{0}:{1:02X}".format(str(item[2]),item[3][0] if item[3] else 0).ljust(10) +
+                "{0:<5}".format(", ".join([f"{item:4X}" for item in item[3][1:]])) + " " +
+                (
+                    " ".join([f"{registerNames[idx]}={item[4][idx]:04X}" for idx in range(10)])
+                ) + " " +
+                (
+                    ('Z' if item[5][0] else "z") +
+                    ('C' if item[5][1] else "c") +
+                    ('N' if item[5][2] else 'n')
+                ) + " " #+
+                #("  " + f"{item[6][0]:05X} = {item[6][1]:X}" if item[6] else "")
+                ).rstrip() + "\n"
+            )
     file.close()
 
 if __name__ == "__main__":
-    termmagic.disable_buffering()
-    termmagic.disable_lfcrlf()
     emulator = Emulator()
+    filedir = os.path.join(__file__,"..")
 
-    trace = True
+    argparser = argparse.ArgumentParser(
+        prog="MiniArch Emulator",
+        description="Emulate MiniArch")
+    argparser.add_argument("rom",nargs="?",help="rom image")
+    argparser.add_argument("--trace","-t",action="store_true",help="write trace log to .trace (first and last 10000 cycles only)")
+    argparser.add_argument("--dump","-d",action="store_true",help="dump final state on halt")
 
+    args = argparser.parse_args()
+
+    if args.rom:
+        if os.path.exists(args.rom):
+            code = open(args.rom,"rb").read()
+        else:
+            sys.exit(f"Rom not found: {args.rom}")
+    else:
+        attempts = [
+            "main.bin", "rom.bin", "bios.bin",
+            "main.img", "rom.img", "bios.img",
+        ]
+        name = None
+        for attempt in attempts:
+            if os.path.isfile(attempt):
+                name = attempt
+                break
+            elif os.path.isfile(os.path.join(filedir,attempt)):
+                name = os.path.join(filedir,attempt)
+                break
+        if not name:
+            sys.exit(f"No rom found, try passing a path to rom")
+
+        code = open(name,"rb").read()
+
+    dump = bool(args.dump)
+    trace = bool(args.trace)
     emulator.doTrace = trace
 
-    code = open("main.bin","rb").read()
-
     try:
+        termmagic.disable_buffering()
+        termmagic.disable_lfcrlf()
         emulator.main(code)
     except KeyboardInterrupt:
         pass
@@ -243,6 +293,7 @@ if __name__ == "__main__":
         termmagic.reset()
     print("")
 
-    emulator.dump()
+    if dump:
+        emulator.dump()
     if trace:
         writeTrace(".trace",emulator.trace)
