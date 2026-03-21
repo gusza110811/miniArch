@@ -66,36 +66,45 @@ class Executor:
             case insts.ldb:
                 if source < 8:
                     if dest < 8:
-                        addr = (get(source+4)<<4)+get(BX)
+                        seg = get(source+4)
+                        addr = get(BX)
                     elif dest <= 13:
-                        addr = (get(dest-4)<<4)+fetchs(2)
-                    srcval = memory.loadb(addr)
+                        seg =get(dest-4)
+                        addr = fetchs(2)
+                    srcval = memory.loadb(seg,addr)
                 elif source <= 13:
-                    addr = (get(source-4)<<4)+fetchs(2)
-                    srcval = memory.loadb(addr)
+                    seg = get(source-4)
+                    addr = fetchs(2)
+                    srcval = memory.loadb(seg,addr)
                 else: raise OpcodeFault
                 set(dest,srcval)
             case insts.ldw:
                 if source < 8:
-                    addr = (get(source+4)<<4)+get(BX)
-                    srcval = memory.loadw(addr)
+                    seg = get(source+4)
+                    addr = get(BX)
+                    srcval = memory.loadw(seg,addr)
                 elif source <= 13:
-                    addr = (get(source-4)<<4)+fetchs(2)
-                    srcval = memory.loadw(addr)
+                    seg = get(source-4)
+                    addr = fetchs(2)
+                    srcval = memory.loadw(seg,addr)
                 else: raise OpcodeFault
                 set(dest,srcval)
             case insts.stb:
                 if dest < 8:
-                    addr = (get(source+4)<<4)+get(1)
+                    seg = get(dest+4)
+                    addr = get(1)
                 elif dest <= 13:
-                    addr = (get(dest-4)<<4)+fetchs(2)
-                memory.storeb(addr,get(source))
+                    seg = get(dest-4)
+                    addr = fetchs(2)
+                memory.storeb(seg,addr,get(source))
             case insts.stw:
                 if dest < 8:
-                    addr = get(dest+4)+get(1)
+                    seg = get(dest+4)
+                    addr = get(1)
                 elif dest <= 13:
-                    addr = (get(dest-4)<<4)+fetchs(2)
-                memory.storew(addr,get(source))
+                    seg = get(dest-4)
+                    addr = fetchs(2)
+                memory.storew(seg,addr,get(source))
 
             case insts.out:
                 value = get(source)

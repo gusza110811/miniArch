@@ -8,36 +8,38 @@ class Rom:
         self.values = self.data
         self.datalen = len(data)
     
-    def loadb(self, address:int) -> int:
-        if address < self.datalen:
-            return self.data[address]
+    def loadb(self, segment:int, address:int) -> int:
+        addr = ((segment << 4) & 0xFFFF0) + (address&0xFFFF)
+        if addr < self.datalen:
+            return self.data[addr]
         else:
             return 0
     
-    def loadw(self, address:int) -> int:
-        return self.loadb(address) | (self.loadb(address+1) << 8)
+    def loadw(self, segment:int, address:int) -> int:
+        return self.loadb(segment,address) + (self.loadb(segment,address+1) << 8)
 
 class Ram:
     def __init__(self):
         self.values = bytearray(0xFFFFF)
 
-    def loadb(self, address:int) -> int:
-        val = self.values[address]
+    def loadb(self, segment:int, address:int) -> int:
+        val = self.values[(segment << 4) + (address&0xFFFF)]
         self.lastAddr, self.lastValue = address, val
+        #print(f"{segment:4X}:{address:4X}  {val:2X}\r")
         return val
 
-    def storeb(self, address:int, value:int):
-        self.values[address] = value&0xff
+    def storeb(self, segment:int, address:int, value:int):
+        self.values[((segment << 4) & 0xFFFF0) + (address&0xFFFF)] = value&0xff
         self.lastAddr, self.lastValue = address, value
     
-    def loadw(self, address:int) -> int:
-        val = self.loadb(address) | (self.loadb(address+1) << 8)
+    def loadw(self, segment:int, address:int) -> int:
+        val = self.loadb(segment,address) | (self.loadb(segment,address+1) << 8)
         self.lastAddr, self.lastValue = address, val
         return val
 
-    def storew(self, address:int, value:int):
-        self.storeb(address,value)
-        self.storeb(address+1,value>>8)
+    def storew(self, segment:int, address:int, value:int):
+        self.storeb(segment,address,value)
+        self.storeb(segment,address+1,value>>8)
 
 class Memory:
     def __init__(self,rom:bytearray):
@@ -46,37 +48,37 @@ class Memory:
         self.lastAddr = 0
         self.lastValue = 0
     
-    def loadb(self,address:int):
-        if address >= 0xF0000:
-            val = self.rom.loadb(address-0xF0000)
+    def loadb(self,segment:int,address:int):
+        if segment >= 0xF000:
+            val = self.rom.loadb(segment-0xF000,address)
         else:
-            val = self.ram.loadb(address)
-        self.lastAddr, self.lastValue = address, val
-        return val
-    
-    def loadw(self,address:int):
-        if address >= 0xF0000:
-            val = self.rom.loadw(address-0xF0000)
-        else:
-            val = self.ram.loadw(address)
+            val = self.ram.loadb(segment,address)
         self.lastAddr, self.lastValue = address, val
         return val
 
-    def loadbs(self,address:int):
-        val = self.ram.loadb(address)
-        self.lastAddr, self.lastValue = address, val
-        return val
-    def loadws(self,address:int):
-        val = self.ram.loadw(address)
+    def loadw(self, segment:int, address:int):
+        if segment >= 0xF000:
+            val = self.rom.loadw(segment-0xF000,address)
+        else:
+            val = self.ram.loadw(segment,address)
         self.lastAddr, self.lastValue = address, val
         return val
 
-    def storeb(self,address:int,value:int):
-        self.ram.storeb(address,value)
+    def loadbs(self,segment:int,address:int):
+        val = self.ram.loadb(segment,address)
+        self.lastAddr, self.lastValue = address, val
+        return val
+    def loadws(self,segment:int,address:int):
+        val = self.ram.loadw(segment,address)
+        self.lastAddr, self.lastValue = address, val
+        return val
+
+    def storeb(self,segment:int,address:int,value:int):
+        self.ram.storeb(segment,address,value)
         self.lastAddr, self.lastValue = address, value
-    
-    def storew(self,address:int,value:int):
-        self.ram.storew(address,value)
+
+    def storew(self,segment:int,address:int,value:int):
+        self.ram.storew(segment,address,value)
         self.lastAddr, self.lastValue = address, value
     
     def lastAccess(self):

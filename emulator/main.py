@@ -85,7 +85,7 @@ class Emulator:
             self.registers[reg] = ((self.registers[reg]&0xff) | (val << 8)) &0xffff
     
     def fetch(self):
-        val = self.memory.loadb((self.registers[CS] << 4) + self.pc)
+        val = self.memory.loadb(self.registers[CS], self.pc)
         self.pc += 1
         return val
     
@@ -100,18 +100,18 @@ class Emulator:
     def pushb(self, value:int):
         self.registers[SP] -= 1
         self.check(SP)
-        self.memory.storeb(self.registers[SP] | (self.registers[SS] << 4),value)
+        self.memory.storeb(self.registers[SS],self.registers[SP],value)
     def pushw(self, value:int):
         self.registers[SP] -= 2
         self.check(SP)
-        self.memory.storew(self.registers[SP] | (self.registers[SS] << 4),value)
+        self.memory.storew(self.registers[SS],self.registers[SP],value)
     def popb(self):
-        val = self.memory.loadb(self.registers[SP] | (self.registers[SS] << 4))
+        val = self.memory.loadb(self.registers[SS],self.registers[SP])
         self.registers[SP] += 1
         self.check(SP)
         return val
     def popw(self):
-        val = self.memory.loadw(self.registers[SP] | (self.registers[SS] << 4))
+        val = self.memory.loadw(self.registers[SS],self.registers[SP])
         self.registers[SP] += 2
         self.check(SP)
         return val
