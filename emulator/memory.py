@@ -20,16 +20,16 @@ class Rom:
 
 class Ram:
     def __init__(self):
-        self.values = bytearray(0xFFFFF)
+        self.values = bytearray(0x100000)
 
     def loadb(self, segment:int, address:int) -> int:
-        val = self.values[(segment << 4) + (address&0xFFFF)]
+        val = self.values[((segment << 4) + (address&0xFFFF)) & 0xFFFFF]
         self.lastAddr, self.lastValue = address, val
         #print(f"{segment:4X}:{address:4X}  {val:2X}\r")
         return val
 
     def storeb(self, segment:int, address:int, value:int):
-        self.values[((segment << 4) & 0xFFFF0) + (address&0xFFFF)] = value&0xff
+        self.values[(((segment << 4) & 0xFFFF0) + (address&0xFFFF)) & 0xFFFFF] = value&0xff
         self.lastAddr, self.lastValue = address, value
     
     def loadw(self, segment:int, address:int) -> int:

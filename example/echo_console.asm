@@ -1,6 +1,11 @@
+; echo console
+; this program reads characters from the input and echoes them back to the output.
+; it assumes that the "terminal" does not send CRLF, but only CR or LF, and it will echo CRLF for both cases.
+
 ; rom code is mapped to F0000-FFFFF
 ; CS = FFFF
 ; DS = SS = ES = 0
+
 const buffer = 0x100
 
 func init {
@@ -84,11 +89,12 @@ func print {
     ret
 }
 
-text:   .asciiz "Echo Console!!!\n"
+text:   .asciiz "Echo Console\n"
 
+; reset vector
 .align 0xFFF0
 func reset {
     jmpf 0xF000, 0
 }
 
-.align 0xFFFF .zero
+.align 0xFFFF .zero ; this part isnt important but it makes the output binary perfectly 64kiB

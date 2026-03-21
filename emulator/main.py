@@ -199,7 +199,7 @@ class Emulator:
                 prev_value = value
 
         if repeat_count > 0:
-            result.append(f"...repeated to {(end):04X}")
+            result.append(f"...repeated to {(end-1):04X}")
         
         return result
 

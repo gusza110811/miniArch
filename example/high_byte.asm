@@ -9,3 +9,7 @@ func main {
 func reset {
     jmpf 0xF000, main
 }
+; expected end state
+; ax = AEFE
+; cx = AE
+; dx = FE00
