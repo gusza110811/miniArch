@@ -20,7 +20,10 @@ class Immediate(BaseParameter):
 class Register(BaseParameter):
     def __init__(self, value, length=1):
         super().__init__(value)
-        self.default_size = length
+        if value < 0xC:
+            self.default_size = 1
+        else:
+            self.default_size = 0
     def __repr__(self):
         return f"Register({self.value})"
 

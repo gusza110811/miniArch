@@ -520,7 +520,8 @@ class Transformer(t):
         def eval(self):
             return ['ax','bx','cx','dx',
                     'cs','ds','ss','es',
-                    'ip','sp','bp'].index(self.value.lower())
+                    'sp','bp','.','.',
+                    'ah','bh','ch','dh'].index(self.value.lower())
     
     class SIGN(Leaf):
         def eval(self):

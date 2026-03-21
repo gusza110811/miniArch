@@ -60,10 +60,7 @@ text:   .asciiz "Echo Console!!!\r\n"
 
 .align 0xFFF0
 func reset {
-    jmpf 0xF000, 0 ; 48 00 F0 00 00
-    ; inter-segment jump, call and ret are separate from intra-segment counterpart
-    ; far jump does not use operand descriptor
-    ; so no conditions
+    jmpf 0xF000, 0
 }
 
 .align 0xFFFF .zero

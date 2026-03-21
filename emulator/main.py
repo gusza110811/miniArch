@@ -5,9 +5,9 @@ from instructions import Instructions
 import argparse
 import os, sys
 
-AX, BX, CX, DX, CS, DS, SS, ES, SP, BP = 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
+AX, BX, CX, DX, CS, DS, SS, ES, SP, BP,   AH, BH, CH, DH = 0, 1, 2, 3, 4, 5, 6, 7, 8, 9,   12, 13, 14, 15
 
-Z, C, N = 0, 1, 2
+Z, C, N, O, I = 0, 1, 2, 3, 4
 
 class Emulator:
     def __init__(self):
@@ -28,7 +28,8 @@ class Emulator:
             False, # zero
             False, # carry
             False, # negative
-            False, # interrupt enable
+            False, # sign overflow
+            False, # interrupt enabl
         ]
 
         self.running = True
@@ -70,12 +71,18 @@ class Emulator:
         else:
             self.flags[N] = False
     
-    def get(self,id:int) -> int:
-        if id >= len(self.registers):
-            raise OpcodeFault
-        return self.registers[id]
+    def get(self,reg:int) -> int:
+        if reg < 0xC:
+            return self.registers[reg]
+        else:
+            reg = reg-0xC
+            return self.registers[reg] >> 8
     def set(self,reg:int,val:int):
-        self.registers[reg] = val
+        if reg < 0xC:
+            self.registers[reg] = val
+        else:
+            reg = reg-0xC
+            self.registers[reg] = ((self.registers[reg]&0xff) | (val << 8)) &0xffff
     
     def fetch(self):
         val = self.memory.loadb((self.registers[CS] << 4) + self.pc)
@@ -215,7 +222,8 @@ def writeTrace(filename:str, trace:list):
             (
                 ('Z' if item[5][0] else "z") +
                 ('C' if item[5][1] else "c") +
-                ('N' if item[5][2] else 'n')
+                ('N' if item[5][2] else 'n') +
+                ('O' if item[5][3] else 'o')
             ) + " " #+
             #("  " + f"{item[6][0]:05X} = {item[6][1]:X}" if item[6] else "")
             ).rstrip() + "\n"
@@ -235,7 +243,8 @@ def writeTrace(filename:str, trace:list):
                 (
                     ('Z' if item[5][0] else "z") +
                     ('C' if item[5][1] else "c") +
-                    ('N' if item[5][2] else 'n')
+                    ('N' if item[5][2] else 'n') +
+                    ('O' if item[5][3] else 'o')
                 ) + " " #+
                 #("  " + f"{item[6][0]:05X} = {item[6][1]:X}" if item[6] else "")
                 ).rstrip() + "\n"

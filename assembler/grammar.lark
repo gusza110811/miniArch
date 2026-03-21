@@ -16,8 +16,6 @@ scope: "{" statement* "}"
     | directive
     | instruction "\n"
     | labeldef
-    | scope
-    | code_block
 
 constantdef: ["const"] IDENTIFIER "=" expr
 labeldef: IDENTIFIER ":"
@@ -92,7 +90,8 @@ COMMENT: ";" /[^\n]*/
 
 REGISTER: "ax"i | "bx"i | "cx"i | "dx"i
     | "cs"i | "ds"i | "ss"i | "es"i
-    | "ip"i | "sp"i | "ip"i
+    | "ip"i | "sp"i
+    | "ah"i | "bh"i | "ch"i | "dh"i
 
 BASES: "cs"i | "ds"i | "ss"i | "es"i
     | "ip"i | "sp"i | "ip"i

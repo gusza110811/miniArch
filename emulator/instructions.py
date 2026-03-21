@@ -55,7 +55,7 @@ class Instructions(enum.Enum):
 
     # flow control
     # distance encoded in dest descriptor (in order): rel8, rel16, abs16
-    # condition encoded in source descriptor (in order): On zero(0), On not zero, On carry, On not carry, On negative, On positive(5), Always(F)
+    # condition encoded in source descriptor (in order): On zero(0), On not zero, On carry, On not carry, On negative, On positive, On sign overflow, On no sign overflow(7), Always(F)
     jmp  = 0x40
     call = 0x41
     ret  = 0x42

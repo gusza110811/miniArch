@@ -1,8 +1,8 @@
 from typing import TYPE_CHECKING
 from instructions import Instructions as insts
 
-AX, BX, CX, DX, CS, DS, SS, ES, SP, BP = 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
-Z, C, N = 0, 1, 2
+AX, BX, CX, DX, CS, DS, SS, ES, SP, BP,   AH, BH, CH, DH = 0, 1, 2, 3, 4, 5, 6, 7, 8, 9,   12, 13, 14, 15
+Z, C, N, O, I = 0, 1, 2, 3, 4
 
 class OpcodeFault(Exception):pass
 
@@ -25,7 +25,7 @@ class Executor:
         check = emulator.check
         flag = emulator.flag
         instnovariant = [
-            insts.halt,
+            insts.halt, insts.nop0,
             insts.jmpf, insts.callf, insts.retf
         ]
         instcheck = [
@@ -40,6 +40,7 @@ class Executor:
         # 0: ax, bx, cx, dx
         # 4: cs, ds, ss, es
         # 8: sp, bp
+        # C: ah, bh, ch, dh
         # source and dest as dereference:
         # 0: cs+bx, ds+bx, ss+bx, es+bx
         # 4: ip+bx, sp+bx, bp+bx, (unused)
@@ -223,6 +224,6 @@ class Executor:
             case insts.halt:
                 emulator.running = False
         if inst in instcheck:
-            check(dest)
+            check(dest&0xC)
 
 if TYPE_CHECKING: from main import Emulator
