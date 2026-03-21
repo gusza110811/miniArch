@@ -6,7 +6,7 @@
 ; CS = FFFF
 ; DS = SS = ES = 0
 
-const buffer = 0x100
+const buffer = 0x1000
 
 func init {
     mov bx, text
