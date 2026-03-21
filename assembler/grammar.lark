@@ -14,7 +14,7 @@ scope: "{" statement* "}"
 
 ?code_statement:
     | directive
-    | instruction
+    | instruction "\n"
     | labeldef
     | scope
     | code_block
@@ -24,11 +24,11 @@ labeldef: IDENTIFIER ":"
 
 ?directive: ".ascii" STRING -> text
     | ".asciiz" STRING -> text_nulterm
-    | ".byte" expr -> byte
-    | ".word" expr -> word
-    | ".double" expr -> double
-    | ".quad" expr -> quad
-    | ".zero" expr -> zero
+    | ".byte" [expr] -> byte
+    | ".word" [expr] -> word
+    | ".double" [expr] -> double
+    | ".quad" [expr] -> quad
+    | ".zero" [expr] -> zero
     | ".org" expr "\n" -> org
     | ".align" expr -> align
     | ".export" IDENTIFIER ["->" IDENTIFIER] -> export
@@ -76,7 +76,7 @@ literal: BINARY
 
 symbol: IDENTIFIER
 
-instruction: IDENTIFIER (parameter ("," parameter)?)? "\n"
+instruction: IDENTIFIER (parameter ("," parameter)?)?
 
 ?parameter: register
     | immediate

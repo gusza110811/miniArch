@@ -1,5 +1,5 @@
 ; rom code is mapped to F0000-FFFFF
-; CS = F000
+; CS = FFFF
 ; DS = SS = ES = 0
 
 func init {
@@ -52,7 +52,18 @@ func print {
         out dx, ax
         add bx, 1
     jmp loop
-    done:   ret
+    done:
+    ret
 }
 
 text:   .asciiz "Echo Console!!!\r\n"
+
+.align 0xFFF0
+func reset {
+    jmpf 0xF000, 0 ; 48 00 F0 00 00
+    ; inter-segment jump, call and ret are separate from intra-segment counterpart
+    ; far jump does not use operand descriptor
+    ; so no conditions
+}
+
+.align 0xFFFF .zero

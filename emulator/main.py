@@ -17,7 +17,7 @@ class Emulator:
 
         self.registers = [
             0,0,0,0, # ax, bx, cx, dx
-            0xf000,0,0,0, # cs, ds, ss, es
+            0xffff,0,0,0, # cs, ds, ss, es
             0,0    # sp, bp
         ]
 

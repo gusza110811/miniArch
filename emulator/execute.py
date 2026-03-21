@@ -24,7 +24,10 @@ class Executor:
         ip = emulator.ip
         check = emulator.check
         flag = emulator.flag
-        instnovariant = [insts.halt]
+        instnovariant = [
+            insts.halt,
+            insts.jmpf, insts.callf, insts.retf
+        ]
         instcheck = [
             insts.add,insts.addi4,insts.addi8,insts.addi,
             insts.sub,insts.subi4,insts.subi8,insts.subi
@@ -41,7 +44,7 @@ class Executor:
         # 0: cs+bx, ds+bx, ss+bx, es+bx
         # 4: ip+bx, sp+bx, bp+bx, (unused)
         # 8: cs+imm, ds+imm, ss+imm, es+imm
-        # B: sp+imm, bp+imm
+        # C: sp+imm, bp+imm
         dest, source = None, None
         if not inst in instnovariant:
             instvariant = fetchs(1)
@@ -130,16 +133,12 @@ class Executor:
                 cond = source
                 distance = dest
                 address = None
-                seg = None
                 match distance:
                     case 0:
                         address = ip + fetchs(1,True)
                     case 1:
                         address = ip + fetchs(2,True)
                     case 2:
-                        address = fetchs(2)
-                    case 3:
-                        seg = fetchs(2)
                         address = fetchs(2)
                 match cond:
                     case 0:
@@ -162,24 +161,18 @@ class Executor:
                             return
                     case 16:
                         pass
-                
-                if seg:
-                    set(CS,seg)
+
                 emulator.pc = address
             case insts.call:
                 cond = source
                 distance = dest
                 address = None
-                seg = None
                 match distance:
                     case 0:
                         address = ip + fetchs(1,True)
                     case 1:
                         address = ip + fetchs(2,True)
                     case 2:
-                        address = fetchs(2)
-                    case 3:
-                        seg = fetchs(2)
                         address = fetchs(2)
                 match cond:
                     case 0:
@@ -202,15 +195,30 @@ class Executor:
                             return
                     case 16:
                         pass
-                
-                if seg:
-                    pushw(get(CS))
-                    set(CS,seg)
+
                 pushw(emulator.pc)
                 emulator.pc = address
             case insts.ret:
                 addr = popw()
                 emulator.pc = addr
+
+            case insts.jmpf:
+                seg = fetchs(2)
+                target = fetchs(2)
+
+                set(CS,seg)
+                emulator.pc = target
+            case insts.callf:
+                pushw(get(CS))
+                pushw(emulator.pc)
+                seg = fetchs(2)
+                target = fetchs(2)
+
+                set(CS,seg)
+                emulator.pc = target
+            case inst.retf:
+                emulator.pc = popw()
+                set(CS,popw())
 
             case insts.halt:
                 emulator.running = False

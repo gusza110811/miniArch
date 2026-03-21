@@ -154,7 +154,7 @@ class Transformer(t):
             return out
         
         def __repr__(self):
-            return "{" + "; ".join([repr(value) for value in self.children[1:]]) + "}"
+            return "{\n  " + ";\n  ".join([repr(value) for value in self.children[1:]]) + "\n}"
     
     class datagen(codegen):pass
 
@@ -167,7 +167,7 @@ class Transformer(t):
         def eval(self, context):
             if self.name:
                 self.name = self.name.eval()
-                context.set(self.name,0x8000)
+                context.set(self.name,0x7FFF)
             return self.scope.eval(context,"code")
         
         def collect(self,context):
@@ -214,6 +214,7 @@ class Transformer(t):
             return f".ascii {self.children[0]}"
         def eval(self, context):
             self.text = self.value.eval()
+        def collect(self, context):
             context.inc_pc(len(self.text))
         def emit(self):
             return self.text.encode('utf-8')
@@ -224,7 +225,8 @@ class Transformer(t):
         def eval(self, context):
             super().eval(context)
             self.text = self.text + "\0"
-            context.inc_pc(1)
+        def collect(self, context):
+            super().collect(context)
         def emit(self):
             return self.text.encode('utf-8')
     
@@ -234,7 +236,10 @@ class Transformer(t):
             return f".byte {self.value}"
         def collect(self, context):
             context.inc_pc(1)
-            self.out = self.value.eval(context).to_bytes(1)
+            if self.value:
+                self.out = self.value.eval(context).to_bytes(1)
+            else:
+                self.out = bytes(1)
         def emit(self):
             return self.out
     class word(datagen):
@@ -242,7 +247,10 @@ class Transformer(t):
             return f".word {self.value}"
         def collect(self, context):
             context.inc_pc(2)
-            self.out = self.value.eval(context).to_bytes(2, byteorder='little')
+            if self.value:
+                self.out = self.value.eval(context).to_bytes(2, byteorder='little')
+            else:
+                self.out = bytes(2)
         def emit(self):
             return self.out
     class double(datagen):
@@ -250,7 +258,10 @@ class Transformer(t):
             return f".double {self.value}"
         def collect(self, context):
             context.inc_pc(4)
-            self.out = self.value.eval(context).to_bytes(4, byteorder='little')
+            if self.value:
+                self.out = self.value.eval(context).to_bytes(4, byteorder='little')
+            else:
+                self.out = bytes(4)
         def emit(self):
             return self.out
     class quad(datagen):
@@ -258,14 +269,21 @@ class Transformer(t):
             return f".quad {self.value}"
         def collect(self, context):
             context.inc_pc(8)
-            self.out = self.value.eval(context).to_bytes(8, byteorder='little')
+            if self.value:
+                self.out = self.value.eval(context).to_bytes(8, byteorder='little')
+            else:
+                self.out = bytes(8)
         def emit(self):
             return self.out
 
     class zero(datagen):
         def collect(self, context):
-            context.inc_pc(self.children[0].eval(context))
-            self.out = b"\0" * self.children[0].eval(context)
+            if self.value:
+                context.inc_pc(self.children[0].eval(context))
+                self.out = b"\0" * self.children[0].eval(context)
+            else:
+                context.inc_pc(1)
+                self.out = b'\0'
         def emit(self):
             return self.out
 
@@ -275,9 +293,9 @@ class Transformer(t):
     
     class align(datagen):
         def collect(self, context):
-            self.length = self.children[0].eval(context) - context.get_pc()
-            context.inc_pc(self.length)
-            self.out = b"\0" * self.length
+            length = self.children[0].eval(context) - context.get_pc()
+            context.inc_pc(length)
+            self.out = b"\0" * length
         def emit(self):
             return self.out
 
@@ -371,7 +389,7 @@ class Transformer(t):
             return f"label {self.children[0]}"
         
         def eval(self, context):
-            context.set(self.children[0].eval(),0x8000)
+            context.set(self.children[0].eval(),0x7FFF)
         
         def collect(self, context):
             context.add_label(self.children[0].eval())

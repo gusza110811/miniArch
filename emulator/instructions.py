@@ -6,6 +6,8 @@ class Instructions(enum.Enum):
     # dest descriptor and src descriptor (1B) for most instructions
     # parameter (1-2B) for some instructions
 
+    nop0 = 0x00
+
     # transfer
     rmov = 0x10
     ldi4 = 0x11
@@ -51,12 +53,16 @@ class Instructions(enum.Enum):
     neg_ = 0x3B#
     sxtbw= 0x3C#
 
-    # control flow
-    # distance encoded in dest descriptor (in order): rel8, rel16, abs16 or seg:abs16
+    # flow control
+    # distance encoded in dest descriptor (in order): rel8, rel16, abs16
     # condition encoded in source descriptor (in order): On zero(0), On not zero, On carry, On not carry, On negative, On positive(5), Always(F)
     jmp  = 0x40
     call = 0x41
     ret  = 0x42
+    # cross segment flow control (no condition)
+    jmpf = 0x48
+    callf= 0x49
+    retf = 0x4A
 
     # stack
     pushw= 0x50#
@@ -73,10 +79,11 @@ class Instructions(enum.Enum):
     clc  = 0x61#
     cln  = 0x62#
     cli  = 0x63#
-    stz  = 0x64#
-    stc  = 0x65#
-    stn  = 0x66#
-    sti  = 0x67#
+    sta  = 0x67 # sets Z, C and N flags #
+    stz  = 0x68#
+    stc  = 0x69#
+    stn  = 0x6A#
+    sti  = 0x6B#
     cla  = 0x6F # clears Z, C and N flags #
 
     halt = 0xFF # pseudo-instruction for debugging

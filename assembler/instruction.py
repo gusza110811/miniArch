@@ -403,6 +403,32 @@ class Bp(Jump_generic): condition = 0x5
 register("bp", Bp)
 register("bnn", Bp)
 
+class Jmpf(Instruction):
+    op = 0x48
+    def get(self, pc, size=2):
+        countcmp = self.check_count(2)
+        if countcmp:
+            return Err(("not enough" if countcmp == -1 else "too many") + " parameter",-1,f"expected 2, got {len(self.args)}")
+        if not self.check_type(0,Immediate):
+            return Err("unsupported operand",0,"target segment must be an immediate value")
+        if not self.check_type(1,Immediate):
+            return Err("unsupported operand",1,"target must be an immediate value")
+        
+        out = bytearray([self.op])
+        
+        segval = self.args[0].value
+        targetval = self.args[1].value
+
+        if segval > 65535:
+            return Err("immediate value too large",0,f"{segval} does not fit in 16 bit")
+        if targetval > 65535:
+            return Err("immediate value too large",1,f"{targetval} does not fit in 16 bit")
+
+        out.extend(segval.to_bytes(2,'little'))
+        out.extend(targetval.to_bytes(2,'little'))
+        return out
+register("jmpf",Jmpf)
+
 class Ret(Instruction):
     def get(self, pc, size=2):
         if self.check_count(0):
