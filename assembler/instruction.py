@@ -193,7 +193,9 @@ class Add(Instruction):
             out.append(0x20)
             out.append((destval<<4) | (srcval))
         elif srcT == Immediate:
-            if srcval < 16:
+            if (srcval == 1) and (destval < 2):
+                out.append(0x2C + destval)
+            elif srcval < 16:
                 out.append(0x21)
                 out.append((destval<<4) | (srcval))
             elif srcval < 256:
@@ -209,6 +211,42 @@ class Add(Instruction):
         
         return bytes(out)
 register("add",Add)
+
+class Inc(Instruction):
+    def get(self, pc, size=2):
+        countcmp = self.check_count(1)
+        if countcmp:
+            return Err(("not enough" if countcmp == 1 else "too many") + " parameter",-1,f"expected 1, got {len(self.args)}")
+
+        if not self.check_type(0,Register):
+            return Err("unsupported parameter",0,"destination must be a register")
+        
+        src = self.args[0]
+        srcval = src.value
+
+        if srcval >= 2:
+            return Err("unsupported parameter",0,"destination must be ax, bx, cx or dx")
+        
+        return bytes([0x2C + srcval])
+register("inc",Inc)
+
+class Dec(Instruction):
+    def get(self, pc, size=2):
+        countcmp = self.check_count(1)
+        if countcmp:
+            return Err(("not enough" if countcmp == 1 else "too many") + " parameter",-1,f"expected 1, got {len(self.args)}")
+
+        if not self.check_type(0,Register):
+            return Err("unsupported parameter",0,"destination must be a register")
+        
+        src = self.args[0]
+        srcval = src.value
+
+        if srcval >= 2:
+            return Err("unsupported parameter",0,"destination must be ax, bx, cx or dx")
+        
+        return bytes([0x2E + srcval])
+register("dec",Dec)
 
 class Sub(Instruction):
     def get(self, pc, size=2):
@@ -236,7 +274,9 @@ class Sub(Instruction):
             out.append(0x24)
             out.append((destval<<4) | (srcval))
         elif srcT == Immediate:
-            if srcval < 16:
+            if (srcval == 1) and (destval < 2):
+                out.append(0x2E + destval)
+            elif srcval < 16:
                 out.append(0x25)
                 out.append((destval<<4) | (srcval))
             elif srcval < 256:
@@ -436,11 +476,14 @@ class Jmpf(Instruction):
         return out
 register("jmpf",Jmpf)
 
+class Callf(Jmpf): op=0x49
+register("callf",Callf)
+
 class Ret(Instruction):
     def get(self, pc, size=2):
         if self.check_count(0):
             return Err("too many parameter",0,"`halt` does not take any parameter")
-        return b"\x42\x00"
+        return b"\x42"
 register("ret",Ret)
 
 class Halt(Instruction):

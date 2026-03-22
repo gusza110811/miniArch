@@ -42,10 +42,11 @@ func input {
     out dx, ax
 
     mov [b bx], ax
-    add bx, 1
+    inc bx
     jmp input
 }
 
+; affect ax, cx, dx
 func crlf {
     mov cx, '\r'
     out dx, cx
@@ -62,7 +63,7 @@ func bksp {
     out dx, ax
     out dx, cx
     out dx, ax
-    sub bx, 1
+    dec bx
     mov ax, [b bx]
     jmp input
 }
@@ -75,7 +76,7 @@ func print {
         mov ax, [b bx]
         cmp ax, 0
         jz done
-        add bx, 1
+        inc bx
         cmp ax, '\n'
         jz lfcrlf
         out dx, ax

@@ -36,8 +36,8 @@ class Instructions(enum.Enum):
     cmpi = 0x2B
     incax= 0x2C#
     incbx= 0x2D#
-    inccx= 0x2E#
-    incdx= 0x2F#
+    decax= 0x2E#
+    decbx= 0x2F#
 
     and_ = 0x30#
     andi = 0x31#

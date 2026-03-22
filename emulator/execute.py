@@ -26,6 +26,8 @@ class Executor:
         flag = emulator.flag
         instnovariant = [
             insts.halt, insts.nop0,
+            insts.incax, insts.incbx, insts.decax, insts.decbx, 
+            insts.ret,
             insts.jmpf, insts.callf, insts.retf
         ]
         instcheck = [
@@ -138,6 +140,14 @@ class Executor:
                 flag(get(dest)-fetchs(1))
             case insts.cmpi:
                 flag(get(dest)-fetchs(2))
+            case insts.incax:
+                set(AX,get(AX)+1)
+            case insts.incbx:
+                set(BX,get(BX)+1)
+            case insts.decax:
+                set(AX,get(AX)-1)
+            case insts.decbx:
+                set(BX,get(BX)-1)
 
             case insts.jmp:
                 cond = source
