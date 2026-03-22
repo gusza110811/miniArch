@@ -44,9 +44,7 @@ class Executor:
         # C: ah, bh, ch, dh
         # source and dest as dereference:
         # 0: cs+bx, ds+bx, ss+bx, es+bx
-        # 4: ip+bx, sp+bx, bp+bx, (unused)
-        # 8: cs+imm, ds+imm, ss+imm, es+imm
-        # C: sp+imm, bp+imm
+        # 4: cs+imm, ds+imm, ss+imm, es+imm
         dest, source = None, None
         if not inst in instnovariant:
             instvariant = fetchs(1)
@@ -65,37 +63,31 @@ class Executor:
                 set(dest,fetchs(2))
             
             case insts.ldb:
-                if source < 8:
-                    if dest < 8:
-                        seg = get(source+4)
-                        addr = get(BX)
-                    elif dest <= 13:
-                        seg =get(dest-4)
-                        addr = fetchs(2)
-                    srcval = memory.loadb(seg,addr)
-                elif source <= 13:
-                    seg = get(source-4)
+                if dest < 8:
+                    seg = get(dest+4)
+                    addr = get(1)
+                elif dest <= 13:
+                    seg = get(dest)
                     addr = fetchs(2)
-                    srcval = memory.loadb(seg,addr)
                 else: raise OpcodeFault
+                srcval = memory.loadb(seg,addr)
                 set(dest,srcval)
             case insts.ldw:
                 if source < 8:
                     seg = get(source+4)
                     addr = get(BX)
-                    srcval = memory.loadw(seg,addr)
                 elif source <= 13:
-                    seg = get(source-4)
+                    seg = get(source)
                     addr = fetchs(2)
-                    srcval = memory.loadw(seg,addr)
                 else: raise OpcodeFault
+                srcval = memory.loadw(seg,addr)
                 set(dest,srcval)
             case insts.stb:
                 if dest < 8:
                     seg = get(dest+4)
                     addr = get(1)
                 elif dest <= 13:
-                    seg = get(dest-4)
+                    seg = get(dest)
                     addr = fetchs(2)
                 memory.storeb(seg,addr,get(source))
             case insts.stw:
@@ -103,7 +95,7 @@ class Executor:
                     seg = get(dest+4)
                     addr = get(1)
                 elif dest <= 13:
-                    seg = get(dest-4)
+                    seg = get(dest)
                     addr = fetchs(2)
                 memory.storew(seg,addr,get(source))
 

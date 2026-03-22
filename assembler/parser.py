@@ -552,8 +552,7 @@ class Transformer(t):
     
     class BASES(Leaf):
         def eval(self):
-            return ['cs','ds','ss','es',
-                    'ip','sp','bp'].index(self.value.lower())
+            return ['cs','ds','ss','es'].index(self.value.lower())
 
     class STRING(Leaf):
         def __init__(self,value:str):

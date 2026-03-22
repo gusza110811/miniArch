@@ -120,7 +120,7 @@ class Mov(Instruction):
                 base = src.base
                 offset = src.value
                 target = dest.value
-                descriptor = (target << 4) | (base+8)
+                descriptor = (target << 4) | (base+4)
                 out.append(descriptor)
                 out.extend(offset.to_bytes(2,'little'))
             elif srcT == IndirectDereference:
@@ -142,7 +142,7 @@ class Mov(Instruction):
                 base = dest.base
                 offset = dest.value
                 source = src.value
-                descriptor = ((base+8) << 4)|source
+                descriptor = ((base+4) << 4)|source
                 out.append(descriptor)
                 out.extend(offset.to_bytes(2,'little'))
             elif srcT == Dereference or srcT == IndirectDereference:
