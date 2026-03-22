@@ -5,6 +5,7 @@ class Instructions(enum.Enum):
     # opcode (1B)
     # dest descriptor and src descriptor (1B) for most instructions
     # parameter (1-2B) for some instructions
+    # ending in # mean not implemented yet
 
     nop0 = 0x00
 
@@ -34,10 +35,10 @@ class Instructions(enum.Enum):
     cmpi4= 0x29
     cmpi8= 0x2A
     cmpi = 0x2B
-    incax= 0x2C#
-    incbx= 0x2D#
-    decax= 0x2E#
-    decbx= 0x2F#
+    incax= 0x2C
+    incbx= 0x2D
+    decax= 0x2E
+    decbx= 0x2F
 
     and_ = 0x30#
     andi = 0x31#
@@ -52,6 +53,7 @@ class Instructions(enum.Enum):
     not_ = 0x3A#
     neg_ = 0x3B#
     sxtbw= 0x3C#
+    zxtbw= 0x3D#
 
     # flow control
     # distance encoded in dest descriptor (in order): rel8, rel16, abs16
@@ -65,14 +67,14 @@ class Instructions(enum.Enum):
     retf = 0x4A
 
     # stack
-    pushw= 0x50#
-    pushb= 0x51#
-    popw = 0x52#
-    popb = 0x53#
-    pushf= 0x54 # flags #
-    popf = 0x55#
-    pusha= 0x5E#
-    popa = 0x5F#
+    pushw= 0x50
+    pushb= 0x51
+    popw = 0x52
+    popb = 0x53
+    pushf= 0x54 # flags
+    popf = 0x55
+    pusha= 0x5E
+    popa = 0x5F
 
     # flags
     clz  = 0x60#

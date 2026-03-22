@@ -32,7 +32,8 @@ class Executor:
         ]
         instcheck = [
             insts.add,insts.addi4,insts.addi8,insts.addi,
-            insts.sub,insts.subi4,insts.subi8,insts.subi
+            insts.sub,insts.subi4,insts.subi8,insts.subi,
+            insts.incax,insts.incbx,insts.decax,insts.decbx,
         ]
 
         # instruction variants (for those that supports it)
@@ -236,9 +237,38 @@ class Executor:
 
                 set(CS,seg)
                 emulator.pc = target
-            case inst.retf:
+            case insts.retf:
                 emulator.pc = popw()
                 set(CS,popw())
+
+            case insts.pushb:
+                pushb(get(source))
+            case insts.pushw:
+                pushw(get(source))
+            case insts.popb:
+                set(dest,popb())
+            case insts.popw:
+                set(dest,popw())
+            case insts.pushf:
+                # push all flags as a byte
+                flagsbyte = 0
+                for i in range(8):
+                    flagsbyte |= (flags[i] << i)
+                pushb(flagsbyte)
+            case insts.popf:
+                flagsbyte = popb()
+                for i in range(8):
+                    flags[i] = (flagsbyte >> i) & 1
+            case insts.pusha:
+                pushw(get(AX))
+                pushw(get(BX))
+                pushw(get(CX))
+                pushw(get(DX))
+            case insts.popa:
+                set(DX,popw())
+                set(CX,popw())
+                set(BX,popw())
+                set(AX,popw())
 
             case insts.halt:
                 emulator.running = False

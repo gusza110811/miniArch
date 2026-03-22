@@ -93,6 +93,9 @@ class Mov(Instruction):
 
         if destT == Register:
             if srcT == Register:
+                if (destval < 0xC and size == 1) or (srcval < 0xC and size == 1):
+                    return Err("bad use of byte register",0,"low byte registers cannot be used in register to register mov")
+
                 out.append(0x10)
                 out.append((destval<<4)|srcval)
             elif srcT == Immediate:
@@ -478,6 +481,60 @@ register("jmpf",Jmpf)
 
 class Callf(Jmpf): op=0x49
 register("callf",Callf)
+
+class Push(Instruction):
+    def get(self, pc, size=2):
+        countcmp = self.check_count(1)
+        if countcmp:
+            return Err(("not enough" if countcmp == 1 else "too many") + " parameter",-1,f"expected 1, got {len(self.args)}")
+        src = self.args[0]
+        srcval = src.value
+        srcT = src.__class__
+
+        out = bytearray()
+
+        if srcT == Immediate:
+            return Err("unsupported operand",0,"cannot push immediate value")
+        elif srcT == Register:
+            src:Register
+            if src.default_size == 1:
+                out.append(0x50)
+                out.append(srcval)
+            else:
+                out.append(0x51)
+                out.append(srcval)
+        elif srcT == Dereference or srcT == IndirectDereference:
+            return Err("unsupported operand",0,"cannot push directly from memory")
+        
+        return bytes(out)
+register("push",Push)
+
+class Pop(Instruction):
+    def get(self, pc, size=2):
+        countcmp = self.check_count(1)
+        if countcmp:
+            return Err(("not enough" if countcmp == 1 else "too many") + " parameter",-1,f"expected 1, got {len(self.args)}")
+        dest = self.args[0]
+        destval = dest.value
+        destT = dest.__class__
+
+        out = bytearray()
+
+        if destT == Immediate:
+            return Err("unsupported operand",0,"cannot pop to immediate value")
+        elif destT == Register:
+            dest:Register
+            if dest.default_size == 1:
+                out.append(0x52)
+                out.append(destval<<4)
+            else:
+                out.append(0x53)
+                out.append(destval<<4)
+        elif destT == Dereference or destT == IndirectDereference:
+            return Err("unsupported operand",0,"cannot pop directly to memory")
+        
+        return bytes(out)
+register("pop",Pop)
 
 class Ret(Instruction):
     def get(self, pc, size=2):

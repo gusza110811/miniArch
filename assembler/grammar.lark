@@ -92,6 +92,7 @@ REGISTER: "ax"i | "bx"i | "cx"i | "dx"i
     | "cs"i | "ds"i | "ss"i | "es"i
     | "ip"i | "sp"i
     | "ah"i | "bh"i | "ch"i | "dh"i
+    | "al"i | "bl"i | "cl"i | "dl"i
 
 BASES: "cs"i | "ds"i | "ss"i | "es"i
     | "ip"i | "sp"i | "ip"i
