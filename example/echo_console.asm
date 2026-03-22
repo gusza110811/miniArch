@@ -2,10 +2,6 @@
 ; this program reads characters from the input and echoes them back to the output.
 ; it assumes that the "terminal" does not send CRLF, but only CR or LF, and it will echo CRLF for both cases.
 
-; rom code is mapped to F0000-FFFFF
-; CS = FFFF
-; DS = SS = ES = 0
-
 const buffer = 0x1000
 
 func init {
@@ -23,50 +19,58 @@ func main {
     jmp main
 }
 
-; cx = buffer
-func input {
-    mov dx, 0xffff
-    in ax, dx
-    cmp ax, 0
-    jz input
+{
+    ; export can be used before constant definition, label definition, and even code block
+    ; or just, an internal name to global name pair
+    ; like `export local -> global`
+    ; doesnt even need the `global` part
+    ; just `export name` also work
+    ; cx = buffer
+    export func input {
+        mov dx, 0xffff
+        in ax, dx
+        cmp ax, 0
+        jz input
 
-    cmp ax, '\b'
-    bz bksp
+        cmp ax, '\b'
+        bz bksp
 
-    cmp ax, '\n'
-    jz crlf
+        cmp ax, '\n'
+        jz crlf
 
-    cmp ax, '\r'
-    jz crlf
+        cmp ax, '\r'
+        jz crlf
 
-    out dx, ax
+        out dx, ax
 
-    mov [b bx], ax
-    inc bx
-    jmp input
+        mov [b bx], ax
+        inc bx
+        jmp input
+    }
+
+    ; affect ax, cx, dx
+    func crlf {
+        mov cx, '\r'
+        out dx, cx
+        mov cx, '\n'
+        out dx, cx
+        mov ax, '\n'
+        mov [b bx], ax
+        ret
+    }
+
+    ; affect cx, bx--
+    func bksp {
+        mov cx, ' '
+        out dx, ax
+        out dx, cx
+        out dx, ax
+        dec bx
+        mov ax, [b bx]
+        jmp input
+    }
 }
-
-; affect ax, cx, dx
-func crlf {
-    mov cx, '\r'
-    out dx, cx
-    mov cx, '\n'
-    out dx, cx
-    mov ax, '\n'
-    mov [b bx], ax
-    ret
-}
-
-; affect cx, bx--
-func bksp {
-    mov cx, ' '
-    out dx, ax
-    out dx, cx
-    out dx, ax
-    dec bx
-    mov ax, [b bx]
-    jmp input
-}
+; crlf and bksp is out of scope
 
 ; affects ax, bx, cx, dx
 func print {

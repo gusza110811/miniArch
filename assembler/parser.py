@@ -381,7 +381,6 @@ class Transformer(t):
         def eval(self, context):
             name = self.name.eval()
             context.set(name,0)
-            return name
 
         def collect(self, context):
             name = self.name.eval()
@@ -389,14 +388,19 @@ class Transformer(t):
             context.set(name,self.val.eval(context))
         
     class labeldef(codegen):
+        def __init__(self, value):
+            super().__init__(value)
+            self.name = self.children[0]
+
         def __repr__(self):
-            return f"label {self.children[0]}"
+            return f"label {self.name}"
         
         def eval(self, context):
-            context.set(self.children[0].eval(),0x7FFF)
+            self.name = self.name.eval()
+            context.set(self.name,0x7FFF)
         
         def collect(self, context):
-            context.add_label(self.children[0].eval())
+            context.add_label(self.name)
     
     class export(codegen):
         def __init__(self, value):
@@ -411,6 +415,7 @@ class Transformer(t):
                 self.dest = self.dest.eval()
             else:
                 self.dest = self.source
+            context.parent.set(self.dest,0x7fff)
 
         def collect(self, context):
             context.parent.set(self.dest,context.get(self.source))
@@ -419,14 +424,20 @@ class Transformer(t):
         def __init__(self, value):
             super().__init__(value)
 
-            self.source:Transformer.constantdef = self.children[0]
+            self.source:Transformer.constantdef|Transformer.labeldef|Transformer.code_block = self.children[0]
         
         def eval(self, context):
-            self.name= self.source.eval(context)
+            out = self.source.eval(context)
+            self.name = self.source.name
+            context.parent.set(self.name,0x7fff)
+            return out
 
         def collect(self, context):
             self.source.collect(context)
             context.parent.set(self.name,context.get(self.name))
+        
+        def emit(self):
+            return self.source.emit()
 
     class expr(Branch):
         def __init__(self, value):

@@ -31,10 +31,8 @@ labeldef: IDENTIFIER ":"
     | ".zero" [expr] -> zero
     | ".org" expr "\n" -> org
     | ".align" expr -> align
-    | ".export" IDENTIFIER ["->" IDENTIFIER] -> export
-    | ".export" constantdef -> exportdef
     | "export" IDENTIFIER ["->" IDENTIFIER] -> export
-    | "export" constantdef -> exportdef
+    | "export" (constantdef|labeldef|code_block) -> exportdef
 
 ?expr: bitwise_or
 
