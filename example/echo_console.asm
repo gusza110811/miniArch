@@ -44,7 +44,7 @@ func main {
         out dx, ax
 
         mov [b bx], ax
-        inc bx
+        add bx, 1
         jmp input
     }
 
@@ -65,22 +65,23 @@ func main {
         out dx, ax
         out dx, cx
         out dx, ax
-        dec bx
+        sub bx, 1
         mov ax, [b bx]
         jmp input
     }
 }
 ; crlf and bksp is out of scope
 
-; affects ax, bx, cx, dx
+; bx = pointer to string
 func print {
+    pusha
     mov dx, 0xffff
     mov cx, '\r'
     loop:
         mov ax, [b bx]
         cmp ax, 0
         jz done
-        inc bx
+        add bx, 1
         cmp ax, '\n'
         jz lfcrlf
         out dx, ax
@@ -91,6 +92,7 @@ func print {
     jmp loop
 
     done:
+    popa
     ret
 }
 

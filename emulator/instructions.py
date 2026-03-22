@@ -7,7 +7,9 @@ class Instructions(enum.Enum):
     # parameter (1-2B) for some instructions
     # ending in # mean not implemented yet
 
-    nop0 = 0x00
+    nop0 = 0x00 # do nothing on empty memory
+    nop1 = 0x01 # intentional nop
+    nopf = 0x0f # intentional nop + unused dest/src descriptor
 
     # transfer
     rmov = 0x10
@@ -35,25 +37,20 @@ class Instructions(enum.Enum):
     cmpi4= 0x29
     cmpi8= 0x2A
     cmpi = 0x2B
-    incax= 0x2C
-    incbx= 0x2D
-    decax= 0x2E
-    decbx= 0x2F
+    neg_ = 0x2C
+    sxtbw= 0x2D#
 
-    and_ = 0x30#
-    andi = 0x31#
-    or_  = 0x32#
-    ori  = 0x33#
-    xor_ = 0x34#
-    xori = 0x35#
-    shr  = 0x36#
-    shri4= 0x37#
-    shl  = 0x38#
-    shli4= 0x39#
-    not_ = 0x3A#
-    neg_ = 0x3B#
-    sxtbw= 0x3C#
-    zxtbw= 0x3D#
+    and_ = 0x30
+    andi = 0x31
+    or_  = 0x32
+    ori  = 0x33
+    xor_ = 0x34
+    xori = 0x35
+    shr  = 0x36
+    shri4= 0x37
+    shl  = 0x38
+    shli4= 0x39
+    not_ = 0x3A
 
     # flow control
     # distance encoded in dest descriptor (in order): rel8, rel16, abs16
@@ -77,16 +74,19 @@ class Instructions(enum.Enum):
     popa = 0x5F
 
     # flags
+    # : Zero, Carry, Negative, Overflow, Interrupt enable
     clz  = 0x60#
     clc  = 0x61#
     cln  = 0x62#
-    cli  = 0x63#
-    sta  = 0x67 # sets Z, C and N flags #
+    clo  = 0x63#
+    cli  = 0x64#
+    cla  = 0x67 # clears Z, C, N and O flags #
     stz  = 0x68#
     stc  = 0x69#
     stn  = 0x6A#
-    sti  = 0x6B#
-    cla  = 0x6F # clears Z, C and N flags #
+    sto  = 0x6B#
+    sti  = 0x6C#
+    sta  = 0x6F # sets Z, C, N and O flags #
 
     halt = 0xFF # pseudo-instruction for debugging
 

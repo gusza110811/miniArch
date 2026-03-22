@@ -42,35 +42,25 @@ class Emulator:
     
     def check(self,reg:int):
         res = self.registers[reg]
+        prevCarry = self.flags[C]
         if res == 0:
             self.flags[Z] = True
         else:
             self.flags[Z] = False
-        if res > 0xFFFF:
+        if (res & 0x1FFFF) > 0xFFFF:
             self.flags[C] = True
             self.registers[reg] &= 0xFFFF
         else:
             self.flags[C] = False
+        if prevCarry != self.flags[C]:
+            self.flags[O] = True
+        else:
+            self.flags[O] = False
         if res < 0:
             self.flags[N] = True
             self.registers[reg] &= 0xFFFF
         else:
             self.flags[N] = False
-    
-    def flag(self,value:int):
-        if value == 0:
-            self.flags[Z] = True
-        else:
-            self.flags[Z] = False
-        if value > 0xFFFF:
-            self.flags[C] = True
-        else:
-            self.flags[C] = False
-        if value < 0:
-            self.flags[N] = True
-        else:
-            self.flags[N] = False
-    
     def get(self,reg:int) -> int:
         if reg < 0xC:
             return self.registers[reg]

@@ -23,17 +23,15 @@ class Executor:
         flags = emulator.flags
         ip = emulator.ip
         check = emulator.check
-        flag = emulator.flag
         instnovariant = [
-            insts.halt, insts.nop0,
-            insts.incax, insts.incbx, insts.decax, insts.decbx, 
+            insts.halt, insts.nop0, insts.nop1,
             insts.ret,
-            insts.jmpf, insts.callf, insts.retf
+            insts.jmpf, insts.callf, insts.retf,
+            insts.pushf, insts.popf, insts.pusha, insts.popa,
         ]
         instcheck = [
-            insts.add,insts.addi4,insts.addi8,insts.addi,
+            insts.add,insts.addi4,insts.addi8,insts.addi, insts.neg_,
             insts.sub,insts.subi4,insts.subi8,insts.subi,
-            insts.incax,insts.incbx,insts.decax,insts.decbx,
         ]
 
         # instruction variants (for those that supports it)
@@ -134,21 +132,56 @@ class Executor:
             case insts.subi:
                 set(dest,get(dest)-fetchs(2))
             case insts.cmp:
-                flag(get(dest)-get(source))
+                prev = get(dest)
+                set(dest,prev-get(source))
+                check(dest)
+                set(dest,prev)
             case insts.cmpi4:
-                flag(get(dest)-source)
+                prev = get(dest)
+                set(dest,prev-source)
+                check(dest)
+                set(dest,prev)
             case insts.cmpi8:
-                flag(get(dest)-fetchs(1))
+                prev = get(dest)
+                set(dest,prev-fetchs(1))
+                check(dest)
+                set(dest,prev)
             case insts.cmpi:
-                flag(get(dest)-fetchs(2))
-            case insts.incax:
-                set(AX,get(AX)+1)
-            case insts.incbx:
-                set(BX,get(BX)+1)
-            case insts.decax:
-                set(AX,get(AX)-1)
-            case insts.decbx:
-                set(BX,get(BX)-1)
+                prev = get(dest)
+                set(dest,prev-fetchs(2))
+                check(dest)
+                set(dest,prev)
+            case insts.neg_:
+                set(dest,-get(dest))
+            case insts.sxtbw:
+                value = get(dest)
+                if value & 0x80:
+                    set(dest,value|0xFF00)
+                else:
+                    set(dest,value&0x00FF)
+
+            case insts.and_:
+                set(dest,get(dest)&get(source))
+            case insts.andi:
+                set(dest,get(dest)&fetchs(2))
+            case insts.or_:
+                set(dest,get(dest)|get(source))
+            case insts.ori:
+                set(dest,get(dest)|fetchs(2))
+            case insts.xor_:
+                set(dest,get(dest)^get(source))
+            case insts.xori:
+                set(dest,get(dest)^fetchs(2))
+            case insts.shr:
+                set(dest,get(dest)>>get(source))
+            case insts.shri4:
+                set(dest,get(dest)>>source)
+            case insts.shl:
+                set(dest,(get(dest)<<get(source)))
+            case insts.shli4:
+                set(dest,(get(dest)<<source))
+            case insts.not_:
+                set(dest,~get(dest)&0xFFFF)
 
             case insts.jmp:
                 cond = source

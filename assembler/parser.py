@@ -521,7 +521,14 @@ class Transformer(t):
             return f"symbol {self.children[0]}"
         def eval(self, context):
             name = self.children[0].eval()
-            return context.get(name)
+            try:
+                return context.get(name)
+            except KeyError:
+                raise ParseErr(f"undefined symbol `{name}`", self.children[0].get_first_token().line-1, self.children[0].get_first_token().column-1, self.children[0].get_last_token().end_column-1)
+    
+    class newline(codegen):
+        def __repr__(self):
+            return "\\n"
 
     class IDENTIFIER(Leaf):
         def __repr__(self):

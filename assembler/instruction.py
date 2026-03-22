@@ -196,9 +196,7 @@ class Add(Instruction):
             out.append(0x20)
             out.append((destval<<4) | (srcval))
         elif srcT == Immediate:
-            if (srcval == 1) and (destval < 2):
-                out.append(0x2C + destval)
-            elif srcval < 16:
+            if srcval < 16:
                 out.append(0x21)
                 out.append((destval<<4) | (srcval))
             elif srcval < 256:
@@ -214,42 +212,6 @@ class Add(Instruction):
         
         return bytes(out)
 register("add",Add)
-
-class Inc(Instruction):
-    def get(self, pc, size=2):
-        countcmp = self.check_count(1)
-        if countcmp:
-            return Err(("not enough" if countcmp == 1 else "too many") + " parameter",-1,f"expected 1, got {len(self.args)}")
-
-        if not self.check_type(0,Register):
-            return Err("unsupported parameter",0,"destination must be a register")
-        
-        src = self.args[0]
-        srcval = src.value
-
-        if srcval >= 2:
-            return Err("unsupported parameter",0,"destination must be ax, bx, cx or dx")
-        
-        return bytes([0x2C + srcval])
-register("inc",Inc)
-
-class Dec(Instruction):
-    def get(self, pc, size=2):
-        countcmp = self.check_count(1)
-        if countcmp:
-            return Err(("not enough" if countcmp == 1 else "too many") + " parameter",-1,f"expected 1, got {len(self.args)}")
-
-        if not self.check_type(0,Register):
-            return Err("unsupported parameter",0,"destination must be a register")
-        
-        src = self.args[0]
-        srcval = src.value
-
-        if srcval >= 2:
-            return Err("unsupported parameter",0,"destination must be ax, bx, cx or dx")
-        
-        return bytes([0x2E + srcval])
-register("dec",Dec)
 
 class Sub(Instruction):
     def get(self, pc, size=2):
@@ -277,9 +239,7 @@ class Sub(Instruction):
             out.append(0x24)
             out.append((destval<<4) | (srcval))
         elif srcT == Immediate:
-            if (srcval == 1) and (destval < 2):
-                out.append(0x2E + destval)
-            elif srcval < 16:
+            if srcval < 16:
                 out.append(0x25)
                 out.append((destval<<4) | (srcval))
             elif srcval < 256:
@@ -338,6 +298,131 @@ class Cmp(Instruction):
         
         return bytes(out)
 register("cmp",Cmp)
+
+class Neg(Instruction):
+    def get(self, pc, size=2):
+        countcmp = self.check_count(1)
+        if countcmp:
+            return Err(("not enough" if countcmp == 1 else "too many") + " parameter",-1,f"expected 1, got {len(self.args)}")
+        dest = self.args[0]
+        destval = dest.value
+        destT = dest.__class__
+
+        out = bytearray()
+
+        if destT == Immediate:
+            return Err("unsupported operand",0,"cannot negate immediate value")
+        if destT == Dereference or destT == IndirectDereference:
+            return Err("unsupported operand",0,"cannot negate directly to memory")
+        
+        dest:Register
+        out.append(0x2C)
+        out.append(destval<<4)
+        
+        return bytes(out)
+register("neg",Neg)
+
+class And(Instruction):
+    op=0x30
+
+    def get(self, pc, size=2):
+        countcmp = self.check_count(2)
+        if countcmp:
+            return Err(("not enough" if countcmp == 1 else "too many") + " parameter",-1,f"expected 2, got {len(self.args)}")
+        dest = self.args[0]
+        src = self.args[1]
+        destval = dest.value
+        srcval = src.value
+        destT = dest.__class__
+        srcT = src.__class__
+
+        out = bytearray()
+
+        if destT == Immediate:
+            return Err("unsupported operand",0,"cannot bitwise to immediate value")
+        if destT == Dereference or destT == IndirectDereference:
+            return Err("unsupported operand",0,"cannot bitwise directly to memory")
+        if srcT == Dereference or srcT == IndirectDereference:
+            return Err("unsupported operand",0,"cannot bitwise directly from memory")
+        
+        dest:Register
+        if srcT == Register:
+            out.append(self.op)
+            out.append((destval<<4) | (srcval))
+        elif srcT == Immediate:
+            if srcval < 65536:
+                out.append(self.op+1)
+                out.append(destval<<4)
+                out.extend(srcval.to_bytes(2,"little"))
+            else:
+                return Err("Immediate value too large",1,f"{src.value} does not fit in 16 bit")
+        
+        return bytes(out)
+register("and",And)
+class Or(And): op=0x32
+register("or",Or)
+class Xor(And): op=0x34
+register("xor",Xor)
+
+class Shr(Instruction):
+    op=0x36
+    def get(self, pc, size=2):
+        countcmp = self.check_count(2)
+        if countcmp:
+            return Err(("not enough" if countcmp == 1 else "too many") + " parameter",-1,f"expected 2, got {len(self.args)}")
+        dest = self.args[0]
+        src = self.args[1]
+        destval = dest.value
+        srcval = src.value
+        destT = dest.__class__
+        srcT = src.__class__
+        if destT == Immediate:
+            return Err("unsupported operand",0,"cannot and to immediate value")
+        if destT == Dereference or destT == IndirectDereference:
+            return Err("unsupported operand",0,"cannot and directly to memory")
+        if srcT == Dereference or srcT == IndirectDereference:
+            return Err("unsupported operand",0,"cannot and directly from memory")
+        
+        out = bytearray()
+
+        dest:Register
+        if srcT == Register:
+            out.append(self.op)
+            out.append((destval<<4) | (srcval))
+        elif srcT == Immediate:
+            if srcval < 16:
+                out.append(self.op+1)
+                out.append((destval<<4)|srcval)
+            else:
+                return Err("Immediate value too large",1,f"{src.value} does not fit in 4 bit")
+
+        return out
+register("shr",Shr)
+class Shl(Shr):op=0x38
+register("shl",Shl)
+
+class Not(Instruction):
+    def get(self, pc, size=2):
+        countcmp = self.check_count(1)
+        if countcmp:
+            return Err(("not enough" if countcmp == 1 else "too many") + " parameter",-1,f"expected 1, got {len(self.args)}")
+        dest = self.args[0]
+        destval = dest.value
+        destT = dest.__class__
+
+        out = bytearray()
+
+        if destT == Immediate:
+            return Err("unsupported operand",0,"cannot bitwise immediate value")
+        if destT == Dereference or destT == IndirectDereference:
+            return Err("unsupported operand",0,"cannot bitwise directly to memory")
+        
+        dest:Register
+        out.append(0x3A)
+        out.append(destval<<4)
+        
+        return bytes(out)
+register("not",Not)
 
 class Out(Instruction):
     def get(self, pc, size=2):
@@ -535,6 +620,20 @@ class Pop(Instruction):
         
         return bytes(out)
 register("pop",Pop)
+
+class Pusha(Instruction):
+    def get(self, pc, size=2):
+        if self.check_count(0):
+            return Err("too many parameter",0,"`pusha` does not take any parameter")
+        return b"\x5E"
+register("pusha",Pusha)
+
+class Popa(Instruction):
+    def get(self, pc, size=2):
+        if self.check_count(0):
+            return Err("too many parameter",0,"`popa` does not take any parameter")
+        return b"\x5F"
+register("popa",Popa)
 
 class Ret(Instruction):
     def get(self, pc, size=2):

@@ -89,3 +89,5 @@ if __name__ == "__main__":
     if out:
         with open(dest,"wb") as file:
             file.write(out)
+    else:
+        sys.exit(1)

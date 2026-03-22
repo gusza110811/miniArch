@@ -10,12 +10,12 @@ start: statement+
 
 code_block: ["func "] IDENTIFIER code_scope
 
-?code_scope: "{" code_statement* "}" -> scope
+?code_scope: "{" (code_statement _NEWLINE)* "}" -> scope
 
 scope: "{" statement* "}"
 
 ?code_statement: directive
-    | instruction "\n"
+    | instruction
     | labeldef
     | constantdef
 
@@ -86,7 +86,7 @@ immediate: expr
     | "[" [ADDR_SIZE " "] [BASES SIGN] expr "]" -> direct_addr
 
 // terminals
-COMMENT: ";" /[^\n]*/
+COMMENT: ";" /[^\n]*/ NEWLINE
 
 REGISTER: "ax"i | "bx"i | "cx"i | "dx"i
     | "cs"i | "ds"i | "ss"i | "es"i
@@ -112,6 +112,11 @@ CHAR: "'" /.*?/ /(?<!\\)(\\\\)*?/ "'"
 
 %import common.ESCAPED_STRING
 %import common.WS
+%import common.WS_INLINE
+%import common.NEWLINE
 
-%ignore WS
+_NEWLINE: NEWLINE
+
+%ignore WS_INLINE
+%ignore NEWLINE
 %ignore COMMENT
