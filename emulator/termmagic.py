@@ -1,10 +1,10 @@
-import tty, termios
 import os, sys
+if os.name != "posix":
+    raise NotImplementedError("terminal magic does not work with non-posix system (yet)")
+import tty, termios
 
 tattr = termios.tcgetattr(sys.stdin.fileno()).copy()
 tattro = termios.tcgetattr(sys.stdout.fileno()).copy()
-if os.name != "posix":
-    raise NotImplementedError("terminal magic does not work with non-posix system (yet)")
 
 def disable_buffering():
     stdinfd = sys.stdin.fileno()
