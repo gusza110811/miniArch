@@ -3,7 +3,7 @@
 Table of Content
 1. [Internal Specification](#internal-specification)
 2. [Instruction Encoding](#instruction-encoding)
-3. [Opcode Definition](#opcode-definition)
+4. [Opcode Definition](#opcode-definition)
 
 ## Internal Specification
 
@@ -32,6 +32,7 @@ MiniArch has 17 registers
 - `DH` (High byte of DX)
 
 All the above can be used in any instruction with minimal limitation
+
 Below are registers that cannot be used directly
 
 2 INTERNAL WORD registers:
@@ -48,18 +49,15 @@ Below are registers that cannot be used directly
 
 ### Addressing
 MiniArch has 3 addressing modes:
-- `CS:BX`
-- `DS:BX`
-- `SS:BX`
-- `ES:BX`
-- `CS:immediate`
-- `DS:immediate`
-- `SS:immediate`
-- `ES:immediate`
-- `CS:BX+immediate`
-- `DS:BX+immediate`
-- `SS:BX+immediate`
-- `ES:BX+immediate`
+- **Indirect**
+
+        SEGMENT : BX
+- **Direct**
+
+        SEGMENT : immediate
+- **Indexed**
+
+        SEGMENT : BX + immediate
 
 ---
 
@@ -87,9 +85,20 @@ Most instruction use them to encode registers or to encode memory address to get
 #### Encoding Memory Address
     0: CS:BX , DS:BX , SS:BX , ES:BX
     4: CS:imm, DS:imm, SS:imm, ES:imm
+    8: CS:BX+imm , DS:BX+imm , SS:BX+imm , ES:BX+imm
 addressing with `imm` will take a 2-bytes operand
 
 ---
+
+## Boot
+### Initial State
+- `CS` = `FFFF`
+- Every other register = 0
+- Memory F0000-FFFFF is mapped to ROM
+
+### Reset Vector
+- 16 bytes of code at `FFFF0`
+- should contain a `JMPF` to the main program
 
 ## Opcode Definition
 1.  [NOP](#nop)
