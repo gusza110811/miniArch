@@ -93,9 +93,6 @@ class Mov(Instruction):
 
         if destT == Register:
             if srcT == Register:
-                if (destval < 0xC and size == 1) or (srcval < 0xC and size == 1):
-                    return Err("bad use of byte register",0,"low byte registers cannot be used in register to register mov")
-
                 out.append(0x10)
                 out.append((destval<<4)|srcval)
             elif srcT == Immediate:
@@ -568,6 +565,7 @@ class Callf(Jmpf): op=0x49
 register("callf",Callf)
 
 class Push(Instruction):
+    op=0x50
     def get(self, pc, size=2):
         countcmp = self.check_count(1)
         if countcmp:
@@ -581,20 +579,20 @@ class Push(Instruction):
         if srcT == Immediate:
             return Err("unsupported operand",0,"cannot push immediate value")
         elif srcT == Register:
-            src:Register
-            if src.default_size == 1:
-                out.append(0x50)
-                out.append(srcval)
-            else:
-                out.append(0x51)
-                out.append(srcval)
+            out.append(self.op)
+            out.append(srcval)
         elif srcT == Dereference or srcT == IndirectDereference:
             return Err("unsupported operand",0,"cannot push directly from memory")
         
         return bytes(out)
 register("push",Push)
+register("pushw",Push)
+
+class Pushb(Push):op=0x51
+register("pushb",Pushb)
 
 class Pop(Instruction):
+    op=0x52
     def get(self, pc, size=2):
         countcmp = self.check_count(1)
         if countcmp:
@@ -608,18 +606,17 @@ class Pop(Instruction):
         if destT == Immediate:
             return Err("unsupported operand",0,"cannot pop to immediate value")
         elif destT == Register:
-            dest:Register
-            if dest.default_size == 1:
-                out.append(0x52)
-                out.append(destval<<4)
-            else:
-                out.append(0x53)
-                out.append(destval<<4)
+            out.append(self.op)
+            out.append(destval<<4)
         elif destT == Dereference or destT == IndirectDereference:
             return Err("unsupported operand",0,"cannot pop directly to memory")
         
         return bytes(out)
 register("pop",Pop)
+register("popw",Pop)
+
+class Popb(Pop):op=0x53
+register("popb",Popb)
 
 class Pusha(Instruction):
     def get(self, pc, size=2):
