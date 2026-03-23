@@ -22,14 +22,6 @@ __dir__ = os.path.dirname(__file__)
 class Transformer(t):
     def __init__(self, visit_tokens = True):
         super().__init__(visit_tokens)
-    
-    def get_const_or_label(self, name):
-        if name in self.constants:
-            return self.constants[name]
-        elif name in self.labels:
-            return self.labels[name]
-        else:
-            raise NameError(f"`{name}` is not defined")
 
     class Node:
         def __init__(self, value):pass

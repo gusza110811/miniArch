@@ -29,7 +29,7 @@ MiniArch is a custom 16-bit architecture project. includes an assembler for comp
 
 2. **Emulating Code**:
    - Run the emulator on the generated binary.
-   - Example: `python emulator/main.py output.bin`
+   - Example: `python emulator/main.py example/hello_world.bin`
 
 Refer to `doc/isa.md` for the full instruction set and encoding details.
 
