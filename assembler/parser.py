@@ -328,14 +328,13 @@ class Transformer(t):
             super().__init__(value)
             self.size:Transformer.ADDR_SIZE = value[0]
             self.base:Transformer.BASES = value[1]
-            self.sign = value[2]
-            self.addr:Transformer.expr = value[3]
+            self.addr:Transformer.expr = value[2]
             if self.size:
                 self.size = self.size.eval()
             else:
                 self.size = None
         def __repr__(self):
-            return f"deref {self.base} {self.sign} {self.addr}"
+            return f"deref {self.base}:{self.addr}"
         def dry_eval(self):
             return parameter.Dereference(0,self.size,1)
         def eval(self, context):
@@ -355,6 +354,8 @@ class Transformer(t):
             super().__init__(value)
             self.size:Transformer.ADDR_SIZE|None = value[0]
             self.base:Transformer.REGISTER = value[1]
+            self.sign:Transformer.SIGN = value[2]
+            self.offset:Transformer.expr = value[3]
         def __repr__(self):
             return f"deref {self.base} + BX"
         def dry_eval(self):
@@ -368,7 +369,11 @@ class Transformer(t):
                 base = self.base.eval()
             else:
                 base = 1
-            return parameter.IndirectDereference(base,size)
+            if self.offset:
+                offset = self.offset.eval(context) * self.sign.eval()
+            else:
+                offset = 0
+            return parameter.IndirectDereference(base,offset,size)
 
     class constantdef(codegen):
         def __init__(self, value):

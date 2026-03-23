@@ -34,6 +34,20 @@ class Executor:
             insts.sub,insts.subi4,insts.subi8,insts.subi,
         ]
 
+        def getOffset(deref:int):
+            if deref < 4:
+                seg = get(deref+4)
+                addr = get(BX)
+            elif deref < 8:
+                seg = get(deref)
+                addr = fetchs(2)
+            elif deref < 0xC:
+                seg = get(deref-4)
+                offset = fetchs(2)
+                addr = get(BX) + offset
+            else: raise OpcodeFault
+            return seg, addr
+
         # instruction variants (for those that supports it)
         # bits 0-3: source
         # bits 4-7: dest
@@ -43,8 +57,9 @@ class Executor:
         # 8: sp, bp
         # C: ah, bh, ch, dh
         # source and dest as dereference:
-        # 0: cs+bx, ds+bx, ss+bx, es+bx
-        # 4: cs+imm, ds+imm, ss+imm, es+imm
+        # 0: cs:bx, ds:bx, ss:bx, es:bx
+        # 4: cs:imm, ds:imm, ss:imm, es:imm
+        # 8: cs:bx+imm, ds:bx+imm, ss:bx+imm, es:bx+imm
         dest, source = None, None
         if not inst in instnovariant:
             instvariant = fetchs(1)
@@ -63,40 +78,18 @@ class Executor:
                 set(dest,fetchs(2))
             
             case insts.ldb:
-                if dest < 8:
-                    seg = get(dest+4)
-                    addr = get(1)
-                elif dest <= 13:
-                    seg = get(dest)
-                    addr = fetchs(2)
-                else: raise OpcodeFault
+                seg,addr = getOffset(source)
                 srcval = memory.loadb(seg,addr)
                 set(dest,srcval)
             case insts.ldw:
-                if source < 8:
-                    seg = get(source+4)
-                    addr = get(BX)
-                elif source <= 13:
-                    seg = get(source)
-                    addr = fetchs(2)
-                else: raise OpcodeFault
+                seg,addr = getOffset(source)
                 srcval = memory.loadw(seg,addr)
                 set(dest,srcval)
             case insts.stb:
-                if dest < 8:
-                    seg = get(dest+4)
-                    addr = get(1)
-                elif dest <= 13:
-                    seg = get(dest)
-                    addr = fetchs(2)
+                seg,addr = getOffset(dest)
                 memory.storeb(seg,addr,get(source))
             case insts.stw:
-                if dest < 8:
-                    seg = get(dest+4)
-                    addr = get(1)
-                elif dest <= 13:
-                    seg = get(dest)
-                    addr = fetchs(2)
+                seg,addr = getOffset(dest)
                 memory.storew(seg,addr,get(source))
 
             case insts.out:

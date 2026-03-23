@@ -36,8 +36,9 @@ class Dereference(BaseParameter):
         return self.value.to_bytes(size, byteorder='little')
 
 class IndirectDereference(BaseParameter):
-    def __init__(self, value, length):
-        super().__init__(value)
+    def __init__(self, segment, offset, length):
+        self.segment = self.value = segment
+        self.offset = offset
         self.length = length
     def __repr__(self):
-        return f"IndirectDereference(*{self.value} : BX)"
+        return f"IndirectDereference(*{self.value}:BX + {self.offset})"

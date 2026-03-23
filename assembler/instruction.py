@@ -122,13 +122,19 @@ class Mov(Instruction):
                 out.extend(offset.to_bytes(2,'little'))
             elif srcT == IndirectDereference:
                 base = src.value
+                offset:int = src.offset
                 if length == 0:
                     out.append(0x19)
                 else:
                     out.append(0x1B)
                 target = dest.value
-                descriptor = (target << 4) | base
-                out.append(descriptor)
+                if offset:
+                    descriptor = (target << 4) | (base+8)
+                    out.append(descriptor)
+                    out.extend(offset.to_bytes(2,'little',signed=True))
+                else:
+                    descriptor = (target << 4) | base
+                    out.append(descriptor)
 
         elif destT == Dereference:
             if srcT == Register:
@@ -149,13 +155,19 @@ class Mov(Instruction):
         elif destT == IndirectDereference:
             if srcT == Register:
                 base = dest.value
+                offset:int = dest.offset
                 if length == 0:
                     out.append(0x18)
                 else:
                     out.append(0x1A)
                 source = src.value
-                descriptor = (base << 4) | source
-                out.append(descriptor)
+                if offset:
+                    descriptor = ((base+8) << 4) | source
+                    out.append(descriptor)
+                    out.extend(offset.to_bytes(2,'little',signed=True))
+                else:
+                    descriptor = (base << 4) | source
+                    out.append(descriptor)
             elif srcT == Dereference or srcT == IndirectDereference:
                 return Err("unsupported operand",1,"cannot copy directly from memory to memory")
             elif srcT == Immediate:

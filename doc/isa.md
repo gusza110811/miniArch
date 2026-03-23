@@ -47,7 +47,7 @@ Below are registers that cannot be used directly
     - 4 Interrupt Enable
 
 ### Addressing
-MiniArch has 8 addressing modes:
+MiniArch has 3 addressing modes:
 - `CS:BX`
 - `DS:BX`
 - `SS:BX`
@@ -56,6 +56,10 @@ MiniArch has 8 addressing modes:
 - `DS:immediate`
 - `SS:immediate`
 - `ES:immediate`
+- `CS:BX+immediate`
+- `DS:BX+immediate`
+- `SS:BX+immediate`
+- `ES:BX+immediate`
 
 ---
 

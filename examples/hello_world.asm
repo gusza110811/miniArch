@@ -7,10 +7,10 @@ func print {
     mov ds, cs ; set ds to the same value as cs
     mov dx, 0xFFFF ; dx = port of the serial console
     loop:
-        mov al, [bx]
-        cmp al, 0
+        mov ax, [b bx]
+        cmp ax, 0
         jz done
-        out dx, al
+        out dx, ax
         add bx, 1
         jmp loop
     done:
