@@ -420,15 +420,17 @@ Pop value from stack
 Push status flag as 8 bit value to stack
 
 - Encoded as `0x54`
-    bit     0   1   2   3   4
-    flag    Z   C   N   O   I
+
+        bit     0   1   2   3   4
+        flag    Z   C   N   O   I
 
 ### POPF
 Pop from stack and save to status flags
 
 - Encoded as `0x55`
-    bit     0   1   2   3   4
-    flag    Z   C   N   O   I
+
+        bit     0   1   2   3   4
+        flag    Z   C   N   O   I
 
 ### PUSHA
 Push AX, BX, CX and DX to stack
