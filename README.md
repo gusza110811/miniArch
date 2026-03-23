@@ -15,9 +15,9 @@ MiniArch is a custom 16-bit architecture project. includes an assembler for comp
 ## Features
 
 - Custom 8086-like 16-bit instruction set.
-    - Segmentated memory access
+    - Segmented memory access
     - 17 Registers (4 + 4 + 2 + 4 + 3)
-    - 8 Addressing modes
+    - 2 Addressing modes
 - Assembler: Assemble assembly code to binary machine code.
 - Emulator: Runs the machine code.
 

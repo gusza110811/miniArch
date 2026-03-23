@@ -1,26 +1,29 @@
 # MiniArch Instruction Set Specification
 
 Table of Content
-- [Internal Specification](#internal-specification)
-- [Instruction Encoding](#instruction-encoding)
-- [Opcode Definition](#opcode-definition)
+1. [Internal Specification](#internal-specification)
+2. [Instruction Encoding](#instruction-encoding)
+3. [Opcode Definition](#opcode-definition)
 
 ## Internal Specification
 
 ### Registers
 MiniArch has 17 registers
 
-10 WORD registers:
-- `AX`
-- `BX`
-- `CX`
-- `DX`
-- `CS`
-- `DS`
-- `SS`
-- `ES`
-- `SP`
-- `BP`
+10 WORD registers
+- General Purpose
+    - `AX` Accumulator
+    - `BX` Base
+    - `CX` Counter
+    - `DX` Data
+- Segment
+    - `CS` Code Segment
+    - `DS` Data Segment
+    - `SS` Stack Segment
+    - `ES` Extra Segment
+- Stack
+    - `SP` Stack Pointer
+    - `BP` Base Pointer
 
 4 BYTE registers: 
 - `AH` (High byte of AX)
@@ -32,12 +35,16 @@ All the above can be used in any instruction with minimal limitation
 Below are registers that cannot be used directly
 
 2 INTERNAL WORD registers:
-- `PC`
-- `IP`
+- `PC`: Program Counter, points to the next instruction
+- `IP`: Instruction Pointer, points to the current instruction
 
 1 INTERNAL BYTE register:
-- `FLAGS`
-
+- `FLAGS`: Status Flags
+    - 0 Zero
+    - 1 Carry
+    - 2 Negative
+    - 3 Sign Overflow
+    - 4 Interrupt Enable
 
 ### Addressing
 MiniArch has 8 addressing modes:
