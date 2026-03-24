@@ -20,12 +20,11 @@ func main {
 }
 
 {
-    ; export can be used before constant definition, label definition, and even code block
-    ; or just, an internal name to global name pair
-    ; like `export local -> global`
-    ; doesnt even need the `global` part
-    ; just `export name` also work
-    ; cx = buffer
+    ; affects all gpr
+    ; parameter:
+    ; bx = pointer to buffer
+    ; returns:
+    ; bx = pointer to end of string
     export func input {
         mov dx, 0xffff
         in ax, dx
@@ -48,14 +47,16 @@ func main {
         jmp input
     }
 
-    ; affect ax, cx, dx
+    ; affect cx
     func crlf {
         mov cx, '\r'
         out dx, cx
         mov cx, '\n'
         out dx, cx
-        mov ax, '\n'
-        mov [b bx], ax
+        mov [b bx], cx
+        add bx, 1
+        mov cx, 0
+        mov [b bx], cx
         ret
     }
 
