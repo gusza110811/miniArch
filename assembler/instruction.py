@@ -547,6 +547,13 @@ class Bp(Jump_generic): condition = 0x5
 register("bp", Bp)
 register("bnn", Bp)
 
+class Ret(Instruction):
+    def get(self, pc, size=2):
+        if self.check_count(0):
+            return Err("too many parameter",0,"`halt` does not take any parameter")
+        return b"\x42"
+register("ret",Ret)
+
 class Jmpf(Instruction):
     op = 0x48
     def get(self, pc, size=2):
@@ -575,6 +582,13 @@ register("jmpf",Jmpf)
 
 class Callf(Jmpf): op=0x49
 register("callf",Callf)
+
+class Retf(Instruction):
+    def get(self, pc, size=2):
+        if self.check_count(0):
+            return Err("too many parameter",0,"`halt` does not take any parameter")
+        return b"\x4A"
+register("retf",Retf)
 
 class Push(Instruction):
     op=0x50
@@ -644,12 +658,38 @@ class Popa(Instruction):
         return b"\x5F"
 register("popa",Popa)
 
-class Ret(Instruction):
+class Flag_generic(Instruction):
+    op:int
     def get(self, pc, size=2):
         if self.check_count(0):
-            return Err("too many parameter",0,"`halt` does not take any parameter")
-        return b"\x42"
-register("ret",Ret)
+            return Err("too many parameter",0,f"`{self.__class__.__name__.lower()}` does not take any parameter")
+        return self.op.to_bytes()
+
+class Clz(Flag_generic):op=0x60
+register("clz",Clz)
+class Clc(Flag_generic):op=0x61
+register("clc",Clc)
+class Cln(Flag_generic):op=0x62
+register("cln",Cln)
+class Clo(Flag_generic):op=0x63
+register("clo",Clo)
+class Cli(Flag_generic):op=0x64
+register("cli",Cli)
+class Cla(Flag_generic):op=0x67
+register("cla",Cla)
+
+class Stz(Flag_generic):op=0x68
+register("stz",Stz)
+class Stc(Flag_generic):op=0x69
+register("stc",Stc)
+class Stn(Flag_generic):op=0x6A
+register("stn",Stn)
+class Sto(Flag_generic):op=0x6B
+register("sto",Sto)
+class Sti(Flag_generic):op=0x6C
+register("sti",Sti)
+class Sta(Flag_generic):op=0x6B
+register("sta",Sta)
 
 class Halt(Instruction):
     def get(self, pc, size=2):

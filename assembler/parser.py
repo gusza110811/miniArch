@@ -319,7 +319,7 @@ class Transformer(t):
         def __init__(self, value):
             super().__init__(value)
             self.size:Transformer.ADDR_SIZE = value[0]
-            self.base:Transformer.BASES = value[1]
+            self.base:Transformer.SEGMENT = value[1]
             self.addr:Transformer.expr = value[2]
             if self.size:
                 self.size = self.size.eval()
@@ -345,11 +345,12 @@ class Transformer(t):
         def __init__(self, value):
             super().__init__(value)
             self.size:Transformer.ADDR_SIZE|None = value[0]
-            self.base:Transformer.REGISTER = value[1]
-            self.sign:Transformer.SIGN = value[2]
-            self.offset:Transformer.expr = value[3]
+            self.segment:Transformer.SEGMENT = value[1]
+            self.base:Transformer.BASE = value[2]
+            self.sign:Transformer.SIGN = value[3]
+            self.offset:Transformer.expr = value[4]
         def __repr__(self):
-            return f"deref {self.base} + BX"
+            return f"deref {self.base}:BX + {self.offset}"
         def dry_eval(self):
             return parameter.IndirectDereference(0,0)
         def eval(self, context):
@@ -357,15 +358,16 @@ class Transformer(t):
                 size = self.size.eval()
             else:
                 size = None
-            if self.base:
-                base = self.base.eval()
+            if self.segment:
+                segment = self.segment.eval()
             else:
-                base = 1
+                segment = 1
+            base = self.base.eval()
             if self.offset:
                 offset = self.offset.eval(context) * self.sign.eval()
             else:
                 offset = 0
-            return parameter.IndirectDereference(base,offset,size)
+            return parameter.IndirectDereference(segment,base,offset,size)
 
     class constantdef(codegen):
         def __init__(self, value):
@@ -546,9 +548,13 @@ class Transformer(t):
         def eval(self):
             return 1 if self.value == "+" else -1
     
-    class BASES(Leaf):
+    class SEGMENT(Leaf):
         def eval(self):
             return ['cs','ds','ss','es'].index(self.value.lower())
+
+    class BASE(Leaf):
+        def eval(self):
+            return ['bx','bp'].index(self.value.lower())
 
     class STRING(Leaf):
         def __init__(self,value:str):
@@ -591,6 +597,14 @@ class Transformer(t):
     class ADDR_SIZE(DECIMAL):
         def eval(self):
             return ["b","w","d","q"].index(self.value.lower())
+    
+    class statement(codegen):
+        def __init__(self, value):pass
+        def eval(self, context):pass
+        def collect(self, context):pass
+        def emit(self):return b""
+        def __repr__(self):return ""
+    class code_statement(statement):pass
 
 
 class Parser:
