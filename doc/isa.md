@@ -136,6 +136,16 @@ addressing with `imm` will take a 2-bytes operand
 33. [POPF](#popf)
 34. [PUSHA](#pusha)
 35. [POPA](#popa)
+36. [STZ](#stz)
+37. [STC](#stc)
+38. [STN](#stn)
+39. [STO](#sto)
+40. [CLZ](#clz)
+41. [CLC](#clc)
+42. [CLN](#cln)
+43. [CLO](#clo)
+44. [CLI](#cli)
+45. [CLA](#cla)
 
 ### NOP
 Does nothing
@@ -456,6 +466,66 @@ Pop from stack and save to status flags
 Push AX, BX, CX and DX to stack
 
 - Encoded as `0x5E`
+
+### STZ
+Set `Z` flag to true
+
+- Encoded as `0x60`
+
+### STC
+Set `C` flag to true
+
+- Encoded as `0x61`
+
+### STN
+Set `N` flag to true
+
+- Encoded as `0x62`
+
+### STO
+Set `O` flag to true
+
+- Encoded as `0x63`
+
+### STI
+Set `I` flag to true
+
+- Encoded as `0x64`
+
+### STA
+Set `Z`, `C`, `N` and `O` flag to true
+
+- Encoded as `0x67`
+
+### CLZ
+Clear `Z` flag to false
+
+- Encoded as `0x68`
+
+### CLC
+Clear `C` flag to false
+
+- Encoded as `0x69`
+
+### CLN
+Clear `N` flag to false
+
+- Encoded as `0x6A`
+
+### CLO
+Clear `O` flag to false
+
+- Encoded as `0x6B`
+
+### CLI
+Clear `I` flag to false
+
+- Encoded as `0x6C`
+
+### CLA
+Clear `Z`, `C`, `N` and `O` flag to false
+
+- Encoded as `0x6F`
 
 ### POPA
 Pop from stack to DX, CX, BX and AX

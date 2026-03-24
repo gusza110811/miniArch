@@ -75,18 +75,18 @@ class Instructions(enum.Enum):
 
     # flags
     # : Zero, Carry, Negative, Overflow, Interrupt enable
-    clz  = 0x60#
-    clc  = 0x61#
-    cln  = 0x62#
-    clo  = 0x63#
-    cli  = 0x64#
-    cla  = 0x67 # clears Z, C, N and O flags #
-    stz  = 0x68#
-    stc  = 0x69#
-    stn  = 0x6A#
-    sto  = 0x6B#
-    sti  = 0x6C#
-    sta  = 0x6F # sets Z, C, N and O flags #
+    clz  = 0x60
+    clc  = 0x61
+    cln  = 0x62
+    clo  = 0x63
+    cli  = 0x64
+    cla  = 0x67
+    stz  = 0x68
+    stc  = 0x69
+    stn  = 0x6A
+    sto  = 0x6B
+    sti  = 0x6C
+    sta  = 0x6F
 
     halt = 0xFF # pseudo-instruction for debugging
 
