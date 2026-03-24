@@ -26,6 +26,8 @@ class Assembler:
                     msg = "unmatched quote"
                 case "'":
                     msg = "unmatched quote"
+                case "\n":
+                    msg = "unexpected line break"
             print(color.fg.MAGENTA + f"{msg} {line+1} char {col+1}")
             print(color.RESET + "  "+codelns[line])
             print(color.fg.RED + "  "+" "*(col)+"^")

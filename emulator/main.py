@@ -29,7 +29,7 @@ class Emulator:
             False, # carry
             False, # negative
             False, # sign overflow
-            False, # interrupt enabl
+            False, # interrupt enable
         ]
 
         self.running = True
@@ -213,10 +213,12 @@ def writeTrace(filename:str, trace:list):
                 ('Z' if item[5][0] else "z") +
                 ('C' if item[5][1] else "c") +
                 ('N' if item[5][2] else 'n') +
-                ('O' if item[5][3] else 'o')
+                ('O' if item[5][3] else 'o') +
+                ('I' if item[5][4] else 'i')
             ) + " " #+
             #("  " + f"{item[6][0]:05X} = {item[6][1]:X}" if item[6] else "")
             ).rstrip() + "\n"
+
         )
     if len(trace) > 10000:
         file.write("\n...truncated...\n\n")
@@ -234,7 +236,8 @@ def writeTrace(filename:str, trace:list):
                     ('Z' if item[5][0] else "z") +
                     ('C' if item[5][1] else "c") +
                     ('N' if item[5][2] else 'n') +
-                    ('O' if item[5][3] else 'o')
+                    ('O' if item[5][3] else 'o') +
+                    ('I' if item[5][4] else 'i')
                 ) + " " #+
                 #("  " + f"{item[6][0]:05X} = {item[6][1]:X}" if item[6] else "")
                 ).rstrip() + "\n"

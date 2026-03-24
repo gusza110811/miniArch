@@ -688,7 +688,7 @@ class Sto(Flag_generic):op=0x6B
 register("sto",Sto)
 class Sti(Flag_generic):op=0x6C
 register("sti",Sti)
-class Sta(Flag_generic):op=0x6B
+class Sta(Flag_generic):op=0x6F
 register("sta",Sta)
 
 class Halt(Instruction):

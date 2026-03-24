@@ -395,13 +395,13 @@ Return from subroutine
 
 ### JMPF
 Call a subroutine in a different code segment
-- Encoded as `0x43`
+- Encoded as `0x48`
 - Uses 1 2-byte operand for target segment
 - Uses 1 2-byte operand for target code position
 
 ### CALLF
 Pass control to another position in a different code segment
-- Encoded as `0x44`
+- Encoded as `0x49`
 - Uses 1 2-byte operand for target segment
 - Uses 1 2-byte operand for target code position
 - Push `CS` and `PC` to stack
@@ -409,7 +409,7 @@ Pass control to another position in a different code segment
 ### RETF
 Return out of subroutine called from a different segment
 
-- Encoded as `0x45`
+- Encoded as `0x4A`
 - Pop from stack twice to get the previous `PC` and previous `CS`
 
 ### PUSH

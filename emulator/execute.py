@@ -28,6 +28,8 @@ class Executor:
             insts.ret,
             insts.jmpf, insts.callf, insts.retf,
             insts.pushf, insts.popf, insts.pusha, insts.popa,
+            insts.stz, insts.stc, insts.stn, insts.sto, insts.sti, insts.sta,
+            insts.clz, insts.clc, insts.cln, insts.clo, insts.cli, insts.cla
         ]
         instcheck = [
             insts.add,insts.addi4,insts.addi8,insts.addi, insts.neg_,
@@ -60,6 +62,7 @@ class Executor:
         # 0: cs:bx, ds:bx, ss:bx, es:bx
         # 4: cs:imm, ds:imm, ss:imm, es:imm
         # 8: cs:bx+imm, ds:bx+imm, ss:bx+imm, es:bx+imm
+        # C: cs:bp+imm, ds:bp+imm, ss:bp+imm, es:bp+imm
         dest, source = None, None
         if not inst in instnovariant:
             instvariant = fetchs(1)
@@ -287,6 +290,37 @@ class Executor:
                 set(CX,popw())
                 set(BX,popw())
                 set(AX,popw())
+
+            case insts.stz:
+                flags[Z] = True
+            case insts.stc:
+                flags[C] = True
+            case insts.stn:
+                flags[N] = True
+            case insts.sto:
+                flags[O] = True
+            case insts.sti:
+                flags[I] = True
+            case insts.sta:
+                flags[Z] = True
+                flags[C] = True
+                flags[N] = True
+                flags[O] = True
+            case insts.clz:
+                flags[Z] = False
+            case insts.clc:
+                flags[C] = False
+            case insts.cln:
+                flags[N] = False
+            case insts.clo:
+                flags[O] = False
+            case insts.cli:
+                flags[I] = False
+            case insts.cla:
+                flags[Z] = False
+                flags[C] = False
+                flags[N] = False
+                flags[O] = False
 
             case insts.halt:
                 emulator.running = False
