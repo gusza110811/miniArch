@@ -1,6 +1,9 @@
+import os
 import sys, threading
 import waiting
 from collections import deque
+from enum import Enum
+from io import BufferedRandom
 
 class Rom:
     def __init__(self,data:bytearray):
@@ -91,7 +94,17 @@ class Memory:
 class Port:
     def __init__(self):pass
     def write(self, value:int):pass
-    def read(self) -> int:pass
+    def read(self) -> int:return 0
+
+class Register(Port):
+    def __init__(self,readonly):
+        self.value = 0
+        if readonly:
+            self.write = lambda x: x
+    def write(self, value):
+        self.value = value
+    def read(self):
+        return self.value
 
 class dbgComDev:
     def __init__(self, getPort):
@@ -131,19 +144,112 @@ class dbgComDev:
     def write(self, value:int):
         self.outbuffer.append(value)
 
+class lbaDisk:
+    class Command(Enum):
+        read = 1
+        write = 2
+        queryDevice = 3
+        querySize = 4
+        clearBuffer = 5
+    
+    class Status(Enum):
+        success = 0x00
+        invalidsector = 0x10
+        invaliddevice = 0x11
+
+    def __init__(self, getport):
+        self.commandPort:Port = getport()
+        self.commandPort.write = self.comW
+        self.status:Register = getport(True,True)
+
+        self.sector0:Register = getport(True)
+        self.sector1:Register = getport(True)
+        self.sector2:Register = getport(True)
+        self.sector3:Register = getport(True)
+
+        self.device:Register = getport(True)
+        self.data:Port = getport()
+        self.data.read = self.bufR
+        self.data.write = self.bufW
+
+        self.buffer = deque()
+
+        self.disks:dict[int,BufferedRandom] = {}
+    
+    def get_size(self,file_object):
+        original_position = file_object.tell()
+        file_object.seek(0, os.SEEK_END)
+        size = file_object.tell()
+        file_object.seek(original_position)
+        return size
+    
+    def comW(self, value):
+        disk = self.disks.get(self.device.value)
+        if not disk:
+            self.status.value = self.Status.invaliddevice.value
+            return
+        sector = self.sector0.value + (self.sector1.value << 8) + (self.sector2.value << 16) + (self.sector3.value << 24)
+
+        if sector*512 >= self.get_size(disk):
+            self.status.value = self.Status.invalidsector.value
+            return
+
+        if value == self.Command.read.value:
+            disk.seek(sector*512)
+            self.buffer.extend(disk.read(512))
+            self.status.value = self.Status.success.value
+        elif value == self.Command.write.value:
+            disk.seek(sector*512)
+            data = [self.buffer.popleft() if self.buffer else 0 for _ in range(512)]
+            disk.write(bytes(data))
+            self.status.value = self.Status.success.value
+        elif value == self.Command.queryDevice.value:
+            for i in range(256):
+                if i in self.disks:
+                    self.buffer.append(1)
+                else:
+                    self.buffer.append(0)
+            self.status.value = self.Status.success.value
+        elif value == self.Command.querySize.value:
+            size = self.get_size(disk) >> 9
+            self.buffer.append(size & 0xFF)
+            self.buffer.append((size >> 8) & 0xFF)
+            self.buffer.append((size >> 16) & 0xFF)
+            self.buffer.append((size >> 24) & 0xFF)
+            self.status.value = self.Status.success.value
+        elif value == self.Command.clearBuffer.value:
+            self.buffer.clear()
+            self.status.value = self.Status.success.value
+    
+    def bufR(self):
+        if self.buffer:
+            return self.buffer.popleft()
+        else:
+            return 0
+    
+    def bufW(self, value):
+        self.buffer.append(value)
+
 class IO:
-    # ~64k ports
+    # 64ki ports
     # 0x0300 - 0x030F : UART
     # 0x0310 - 0x031F : Timer
+    # 0x0320 - 0x0327 : Disk
     # 0xFFFF          : Debug Console
     def __init__(self):
-        self.nextPort = 0xffff
         self.ports:dict[int,Port] = {}
 
+        self.nextPort = 0xffff
         self.dbg = dbgComDev(self.getPort)
+
+        self.nextPort = 0x0320
+        self.disk = lbaDisk(self.getPort)
     
-    def getPort(self):
-        port = Port()
+    def getPort(self, register=False, readonly=False):
+        if register:
+            port = Register(readonly)
+        else:
+            port = Port()
         self.ports[self.nextPort] = port
         self.nextPort += 1
         return port

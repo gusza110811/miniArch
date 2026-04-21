@@ -697,3 +697,4 @@ class Halt(Instruction):
             return Err("too many parameter",0,"`halt` does not take any parameter")
         return b"\xff"
 register("halt",Halt)
+register("hlt",Halt)

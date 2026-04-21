@@ -325,6 +325,6 @@ class Executor:
             case insts.halt:
                 emulator.running = False
         if inst in instcheck:
-            check(dest&0xC)
+            check(dest)
 
 if TYPE_CHECKING: from main import Emulator

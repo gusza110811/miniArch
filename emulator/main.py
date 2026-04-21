@@ -179,13 +179,13 @@ class Emulator:
                 if repeat_count > 0:
                     if not printed:
                         if repeat_count > 1:
-                            result.append(f"...{repeat_count} times")
+                            result.append(f"{repeat_count} times")
                         else:
-                            result.append("...repeated  ")
+                            result.append("repeated   ")
                         printed = True
                     repeat_count = 0
 
-                result.append(f"{i:05X}: x{value:02X}   ")
+                result.append(f"{i:05X}: x{value:02X} ")
                 prev_value = value
 
         if repeat_count > 0:
@@ -251,9 +251,10 @@ if __name__ == "__main__":
     argparser = argparse.ArgumentParser(
         prog="MiniArch Emulator",
         description="Emulate MiniArch")
-    argparser.add_argument("rom",nargs="?",help="rom image")
-    argparser.add_argument("--trace","-t",action="store_true",help="write trace log to .trace (first and last 10000 cycles only)")
+    argparser.add_argument("--rom",help="path to rom image")
+    argparser.add_argument("--trace","-t",action="store_true",help="write trace log to .trace (first and last 10000 instructions only)")
     argparser.add_argument("--dump","-d",action="store_true",help="dump final state on halt")
+    argparser.add_argument("--hda", help="path to disk image")
 
     args = argparser.parse_args()
 
@@ -280,6 +281,12 @@ if __name__ == "__main__":
 
         code = open(name,"rb").read()
 
+    if args.hda:
+        if os.path.exists(args.hda):
+            emulator.io.disk.disks[0] = open(args.hda,"rb+")
+        else:
+            sys.exit(f"Disk image not found: {args.hda}")
+
     dump = bool(args.dump)
     trace = bool(args.trace)
     emulator.doTrace = trace
@@ -290,6 +297,10 @@ if __name__ == "__main__":
         emulator.main(code)
     except KeyboardInterrupt:
         pass
+    except:
+        termmagic.reset()
+        import traceback
+        traceback.print_exc()
     finally:
         while emulator.io.dbg.outbuffer:pass
         termmagic.reset()
