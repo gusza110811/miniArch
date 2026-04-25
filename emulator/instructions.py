@@ -62,6 +62,7 @@ class Instructions(enum.Enum):
     jmpf = 0x48
     callf= 0x49
     retf = 0x4A
+    int_ = 0x4B
 
     # stack
     pushw= 0x50

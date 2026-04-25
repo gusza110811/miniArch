@@ -26,7 +26,7 @@ class Executor:
         instnovariant = [
             insts.halt, insts.nop0, insts.nop1,
             insts.ret,
-            insts.jmpf, insts.callf, insts.retf,
+            insts.jmpf, insts.callf, insts.retf, insts.int_,
             insts.pushf, insts.popf, insts.pusha, insts.popa,
             insts.stz, insts.stc, insts.stn, insts.sto, insts.sti, insts.sta,
             insts.clz, insts.clc, insts.cln, insts.clo, insts.cli, insts.cla
@@ -261,6 +261,17 @@ class Executor:
             case insts.retf:
                 emulator.pc = popw()
                 set(CS,popw())
+
+            case insts.int_:
+                intid = fetchs(1)
+                pushw(get(CS))
+                pushw(emulator.pc)
+
+                target = memory.loadw(0, intid*4)
+                seg = memory.loadw(0, intid*4 + 2)
+
+                set(CS,seg)
+                emulator.pc = target
 
             case insts.pushb:
                 pushb(get(source))

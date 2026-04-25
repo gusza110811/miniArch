@@ -550,7 +550,7 @@ register("bnn", Bp)
 class Ret(Instruction):
     def get(self, pc, size=2):
         if self.check_count(0):
-            return Err("too many parameter",0,"`halt` does not take any parameter")
+            return Err("too many parameter",0,"`ret` does not take any parameter")
         return b"\x42"
 register("ret",Ret)
 
@@ -586,9 +586,29 @@ register("callf",Callf)
 class Retf(Instruction):
     def get(self, pc, size=2):
         if self.check_count(0):
-            return Err("too many parameter",0,"`halt` does not take any parameter")
+            return Err("too many parameter",0,"`retf` does not take any parameter")
         return b"\x4A"
 register("retf",Retf)
+
+class Int(Instruction):
+    op = 0x4B
+    def get(self, pc, size=2):
+        countcmp = self.check_count(1)
+        if countcmp:
+            return Err(("not enough" if countcmp == 1 else "too many") + " parameter",-1,f"expected 1, got {len(self.args)}")
+        if not self.check_type(0,Immediate):
+            return Err("unsupported operand",0,"target segment must be an immediate value")
+
+        out = bytearray([self.op])
+        
+        val = self.args[0].value
+
+        if val > 255:
+            return Err("immediate value too large",0,f"{val} does not fit in 16 bit")
+
+        out.append(val)
+        return out
+register("int",Int)
 
 class Push(Instruction):
     op=0x50
