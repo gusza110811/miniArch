@@ -107,7 +107,10 @@ class Transformer(t):
     class codegen(Branch):
         def __init__(self, value):
             super().__init__(value)
-            self.value = self.children[0]
+            if self.children:
+                self.value = self.children[0]
+            else:
+                self.value = None
 
         def eval(self, context:Context):
             pass
@@ -122,6 +125,7 @@ class Transformer(t):
 
         def eval(self, context, mode:typing.Literal["code","data"]="data"):
             self.context = Context(context)
+            self.mode = mode
 
             for child in self.children:
                 child.eval(self.context)
@@ -598,12 +602,7 @@ class Transformer(t):
         def eval(self):
             return ["b","w","d","q"].index(self.value.lower())
     
-    class statement(codegen):
-        def __init__(self, value):pass
-        def eval(self, context):pass
-        def collect(self, context):pass
-        def emit(self):return b""
-        def __repr__(self):return ""
+    class statement(codegen):pass
     class code_statement(statement):pass
 
 

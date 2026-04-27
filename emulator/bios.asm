@@ -15,6 +15,12 @@ func main {
     in ax, bx
     cmp ax, 0
     jz no_disks
+
+    ; add interrupt services
+    mov ax, serial_port_srv
+    mov [0x14 * 4], ax
+    mov [0x14 * 4 + 2], cs
+
     call read
 
     jmpf 0, 0x7c00
@@ -24,6 +30,31 @@ func no_disks {
     mov bx, err_msg
     call print
     hlt
+}
+
+; 0x14 service
+func serial_port_srv {
+    push bx
+    cmp ah, 1
+    jz sput_char
+    cmp ah, 2
+    jz sput_char
+    retf
+
+    func sput_char {
+        mov bx, 0xFFFF
+        out bx, ax
+        pop bx
+        retf
+    }
+
+    func sget_char {
+        mov bx, 0xFFFF
+        in ax, bx
+        pop bx
+        retf
+    }
+
 }
 
 func read {
@@ -72,15 +103,17 @@ func print {
 }
 
 .align 0x8000 ; address $8000 in rom (F000:8000)
-.org 0 ; but used as if it were at $0000 (F800:0000)
+.org 0 ; F800:0000
 ; if ds = $8000 then this will
 ; give us 32k of space for ro data, and 32k for rw data (address wraps around at 0x10000)
 start_msg:
-    .asciiz "MiniArch BIOS\n"
+    .asciiz "MiniArch BIOS\n\n\n"
 err_msg:
     .asciiz "No disks found\n"
 
-.align 0x7FF0 ; because align is relative to the .org, this will be at FFFF:0000 (reset vector)
+data_end:
+
+.align 0x7FF0 ; because align is relative to the .org, this will be at F000:0000 or FFFF:0000 (reset vector)
 func reset {
     jmpf 0xf000, main
 }

@@ -9,13 +9,14 @@ start: statement+
     | labeldef
     | _NEWLINE
 
-code_block: ["func "] IDENTIFIER code_scope
+code_block: "func " IDENTIFIER code_scope
 
 ?code_scope: "{" code_statement* "}" -> scope
 
 scope: "{" statement* "}"
 
 ?code_statement: directive
+    | code_block
     | instruction
     | labeldef
     | constantdef

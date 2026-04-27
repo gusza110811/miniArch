@@ -20,14 +20,15 @@ class Assembler:
             col = e.column -1 if e.column > 0 else -1
             msg = "unexpected character at line"
             match e.char:
-                case "{":
-                    msg = "unmatched braces"
+                #case "{":
+                #    msg = "unmatched braces"
                 case "\"":
                     msg = "unmatched quote"
                 case "'":
                     msg = "unmatched quote"
                 case "\n":
                     msg = "unexpected line break"
+            print(e.considered_tokens)
             print(color.fg.MAGENTA + f"{msg} {line+1} char {col+1}")
             print(color.RESET + "  "+codelns[line])
             print(color.fg.RED + "  "+" "*(col)+"^")
