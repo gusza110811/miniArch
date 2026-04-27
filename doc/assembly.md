@@ -238,6 +238,7 @@ All MiniArch instructions are supported. Instructions with multiple variants (e.
 - `jmpf` - Far jump to different segment
 - `callf` - Far call to different segment
 - `retf` - Far return from different segment
+- `int` - Jump to subroutine (also uses retf)
 
 #### Stack Operations
 

@@ -246,7 +246,7 @@ def writeTrace(filename:str, trace:list):
 
 if __name__ == "__main__":
     emulator = Emulator()
-    filedir = os.path.join(__file__,"..")
+    filedir = os.path.normpath(os.path.join(__file__,".."))
 
     argparser = argparse.ArgumentParser(
         prog="MiniArch Emulator",
@@ -273,7 +273,7 @@ if __name__ == "__main__":
             if os.path.isfile(attempt):
                 name = attempt
                 break
-            elif os.path.isfile(os.path.join(filedir,attempt)):
+            if os.path.isfile(os.path.join(filedir,attempt)):
                 name = os.path.join(filedir,attempt)
                 break
         if not name:

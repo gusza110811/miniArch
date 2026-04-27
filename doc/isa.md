@@ -422,6 +422,14 @@ Return out of subroutine called from a different segment
 - Encoded as `0x4A`
 - Pop from stack twice to get the previous `PC` and previous `CS`
 
+### INT
+Call a interrupte handler
+- Encoded as `0x4B`
+- Uses a 1-byte operand for interrupt id
+- target segment = `[id * 4]`
+- target segment = `[id * 4 + 2]`
+- Push `CS` and `PC` to stack
+
 ### PUSH
 Push value to stack
 

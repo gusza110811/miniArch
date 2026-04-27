@@ -1,6 +1,6 @@
 ; Hello World program in miniArch assembly
-
-.org 0x7c00
+; CS = FFFF
+; DS = SS = ES = 0
 
 func print {
     mov bx, msg
@@ -14,8 +14,13 @@ func print {
         add bx, 1
         jmp loop
     done:
-    hlt
+    halt
 }
 
 msg:
 .asciiz "Hello, World!\r\n"
+
+.align 0xFFF0 ; F000:FFF0 = FFFF:0000
+func reset {
+    jmpf 0xF000, 0
+}
