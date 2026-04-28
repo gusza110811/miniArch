@@ -10,7 +10,7 @@ func main {
     halt
 }
 
-.align 0xFFF0
+.org 0xFFF0
 func reset {
     jmpf 0xF000, 0
 }

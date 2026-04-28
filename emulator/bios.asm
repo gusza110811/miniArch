@@ -2,6 +2,10 @@ func main {
     ; set up segment
     mov ax, 0xE800
     mov ds, ax
+    mov ax, 0x1000
+    mov ss, ax
+    mov ax, 0
+    mov es, ax
 
     ; startup message
     mov bx, start_msg
@@ -43,7 +47,7 @@ func serial_port_srv {
     cmp dx, 1
     jz sput_char
     cmp dx, 2
-    jz sput_char
+    jz sget_char
     retf
 
     func sput_char {
@@ -129,7 +133,7 @@ func print {
 {
     .offset 0x8000
     ; if ds = E800
-    ; 32k of space for ro data, and 32k for rw data
+    ; 32k of space for rw data, and 32k for ro data
     export start_msg:
         .asciiz "MiniArch BIOS\n\n\n"
     export nodisk_err:

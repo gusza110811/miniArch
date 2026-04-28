@@ -20,7 +20,7 @@ func print {
 msg:
 .asciiz "Hello, World!\r\n"
 
-.align 0xFFF0 ; F000:FFF0 = FFFF:0000
+.org 0xFFF0 ; F000:FFF0 = FFFF:0000
 func reset {
     jmpf 0xF000, 0
 }

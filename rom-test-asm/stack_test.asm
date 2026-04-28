@@ -16,7 +16,7 @@ func main {
 ; cx = 1108
 ; dx =   08
 
-.align 0xfff0
+.org 0xfff0
 func reset {
     jmpf 0xf000, 0x0
 }

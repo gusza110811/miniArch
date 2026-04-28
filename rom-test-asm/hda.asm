@@ -81,14 +81,15 @@ func print {
     ret
 }
 
-.align 0x8000 ; address $8000 in rom (F000:8000)
-.org 0 ; but used as if it were at $0000 (F800:0000)
+.org 0x8000 ; address $8000 in rom (F000:8000)
+.offset -0x8000 ; but used as if it were at $0000 (F800:0000)
 ; if ds = $8000 then this will
 ; give us 32k of space for ro data, and 32k for rw data (address wraps around at 0x10000)
 err_msg:
     .asciiz "No disks found\n"
+.offset 0
 
-.align 0x7FF0 ; because align is relative to the .org, this will be at FFFF:0000 (reset vector)
+.offset 0xFFF0
 func reset {
     jmpf 0xf000, main
 }

@@ -9,7 +9,7 @@ func main {
     halt
 }
 
-.align 0x0100
+.org 0x0100
 data:
     .word 0x6502
     .word 0xDEAD
@@ -21,7 +21,7 @@ data:
 ; cx = dead
 ; dx = beef
 
-.align 0xFFF0
+.org 0xFFF0
 func reset {
     jmpf 0xF000, 0
 }

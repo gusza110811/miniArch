@@ -100,9 +100,9 @@ func print {
 text:   .asciiz "Echo Console\n"
 
 ; reset vector
-.align 0xFFF0
+.org 0xFFF0
 func reset {
     jmpf 0xF000, 0
 }
 
-.align 0xFFFF .zero ; this part isnt important but it makes the output binary perfectly 64kiB
+.org 0xFFFF .zero ; this part isnt important but it makes the output binary perfectly 64kiB
