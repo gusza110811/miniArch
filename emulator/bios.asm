@@ -18,30 +18,36 @@ func main {
 
     ; add interrupt services
     mov ax, serial_port_srv
-    mov [0x14 * 4], ax
-    mov [0x14 * 4 + 2], cs
+    mov [es:0x14 * 4], ax
+    mov [es:0x14 * 4 + 2], cs
 
     call read
+
+    ; reset segments
+    mov ds, 0
+    mov es, 0
+    mov ss, 0
 
     jmpf 0, 0x7c00
 }
 
 func no_disks {
-    mov bx, err_msg
+    mov bx, nodisk_err
     call print
     hlt
 }
 
 ; 0x14 service
+; dx = command
 func serial_port_srv {
-    push bx
-    cmp ah, 1
+    cmp dx, 1
     jz sput_char
-    cmp ah, 2
+    cmp dx, 2
     jz sput_char
     retf
 
     func sput_char {
+        push bx
         mov bx, 0xFFFF
         out bx, ax
         pop bx
@@ -49,6 +55,7 @@ func serial_port_srv {
     }
 
     func sget_char {
+        push bx
         mov bx, 0xFFFF
         in ax, bx
         pop bx
@@ -64,6 +71,18 @@ func read {
     mov ax, 0x01
     out bx, ax
 
+    ; wait
+    wait:
+    mov bx, 0x321
+    in ax, bx
+    cmp ax, 1
+    jz wait
+
+    ; check if success
+    in ax, bx
+    cmp ax, 0
+    jnz fail
+
     ; read buffer
     mov dx, 0x0327
     mov bx, 0x7c00
@@ -76,6 +95,11 @@ func read {
     jnz read_loop
 
     ret
+
+    fail:
+        mov bx, diskfail_err
+        call print
+        hlt
 }
 
 ; bx = pointer to message
@@ -108,8 +132,10 @@ func print {
 ; give us 32k of space for ro data, and 32k for rw data (address wraps around at 0x10000)
 start_msg:
     .asciiz "MiniArch BIOS\n\n\n"
-err_msg:
+nodisk_err:
     .asciiz "No disks found\n"
+diskfail_err:
+    .asciiz "Failed to load boot sector\n"
 
 data_end:
 

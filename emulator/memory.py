@@ -154,6 +154,7 @@ class lbaDisk:
     
     class Status(Enum):
         success = 0x00
+        busy = 0x01
         invalidsector = 0x10
         invaliddevice = 0x11
 
@@ -195,14 +196,11 @@ class lbaDisk:
             return
 
         if value == self.Command.read.value:
-            disk.seek(sector*512)
-            self.buffer.extend(disk.read(512))
-            self.status.value = self.Status.success.value
+            self.status.value = self.Status.busy.value
+            threading.Thread(target=lambda: self.read(disk,sector)).start()
         elif value == self.Command.write.value:
-            disk.seek(sector*512)
-            data = [self.buffer.popleft() if self.buffer else 0 for _ in range(512)]
-            disk.write(bytes(data))
-            self.status.value = self.Status.success.value
+            self.status.value = self.Status.busy.value
+            threading.Thread(target=lambda: self.write(disk,sector)).start()
         elif value == self.Command.queryDevice.value:
             for i in range(256):
                 if i in self.disks:
@@ -229,6 +227,17 @@ class lbaDisk:
     
     def bufW(self, value):
         self.buffer.append(value)
+
+    def write(self,disk,sector):
+        disk.seek(sector*512)
+        data = [self.buffer.popleft() if self.buffer else 0 for _ in range(512)]
+        disk.write(bytes(data))
+        self.status.value = self.Status.success.value
+    
+    def read(self,disk,sector):
+        disk.seek(sector*512)
+        self.buffer.extend(disk.read(512))
+        self.status.value = self.Status.success.value
 
 class IO:
     # 64ki ports

@@ -4,13 +4,12 @@
 
 func print {
     mov bx, msg
-    mov ds, cs ; set ds to the same value as cs
-    mov dx, 0xFFFF ; dx = port of the serial console
+    mov dx, 0x01
     loop:
         mov ax, [b bx]
         cmp ax, 0
         jz done
-        out dx, ax
+        int 0x14
         add bx, 1
         jmp loop
     done:
