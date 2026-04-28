@@ -1,6 +1,6 @@
 func main {
-    ; set up segments
-    mov ax, 0xF800
+    ; set up segment
+    mov ax, 0xE800
     mov ds, ax
 
     ; startup message
@@ -126,20 +126,19 @@ func print {
     ret
 }
 
-.align 0x8000 ; address $8000 in rom (F000:8000)
-.org 0 ; F800:0000
-; if ds = $8000 then this will
-; give us 32k of space for ro data, and 32k for rw data (address wraps around at 0x10000)
-start_msg:
-    .asciiz "MiniArch BIOS\n\n\n"
-nodisk_err:
-    .asciiz "No disks found\n"
-diskfail_err:
-    .asciiz "Failed to load boot sector\n"
+{
+    .offset 0x8000
+    ; if ds = E800
+    ; 32k of space for ro data, and 32k for rw data
+    export start_msg:
+        .asciiz "MiniArch BIOS\n\n\n"
+    export nodisk_err:
+        .asciiz "No disks found\n"
+    export diskfail_err:
+        .asciiz "Failed to load boot sector\n"
+}
 
-data_end:
-
-.align 0x7FF0 ; because align is relative to the .org, this will be at F000:0000 or FFFF:0000 (reset vector)
+.org 0xFFF0
 func reset {
     jmpf 0xf000, main
 }

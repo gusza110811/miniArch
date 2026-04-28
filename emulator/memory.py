@@ -11,38 +11,37 @@ class Rom:
         self.values = self.data
         self.datalen = len(data)
     
-    def loadb(self, segment:int, address:int) -> int:
-        addr = ((segment << 4) & 0xFFFF0) + (address&0xFFFF)
+    def loadb(self, addr:int) -> int:
         if addr < self.datalen:
             return self.data[addr]
         else:
             return 0
     
-    def loadw(self, segment:int, address:int) -> int:
-        return self.loadb(segment,address) + (self.loadb(segment,address+1) << 8)
+    def loadw(self, addr:int) -> int:
+        return self.loadb(addr) + (self.loadb(addr) << 8)
 
 class Ram:
     def __init__(self):
         self.values = bytearray(0x100000)
 
-    def loadb(self, segment:int, address:int) -> int:
-        val = self.values[((segment << 4) + (address&0xFFFF)) & 0xFFFFF]
-        self.lastAddr, self.lastValue = address, val
+    def loadb(self, addr:int) -> int:
+        val = self.values[addr & 0xFFFFF]
+        self.lastAddr, self.lastValue = addr, val
         #print(f"{segment:4X}:{address:4X}  {val:2X}\r")
         return val
 
-    def storeb(self, segment:int, address:int, value:int):
-        self.values[(((segment << 4) & 0xFFFF0) + (address&0xFFFF)) & 0xFFFFF] = value&0xff
-        self.lastAddr, self.lastValue = address, value
+    def storeb(self, addr:int, value:int):
+        self.values[addr] = value&0xff
+        self.lastAddr, self.lastValue = addr, value
     
-    def loadw(self, segment:int, address:int) -> int:
-        val = self.loadb(segment,address) | (self.loadb(segment,address+1) << 8)
-        self.lastAddr, self.lastValue = address, val
+    def loadw(self, addr:int) -> int:
+        val = self.loadb(addr) | (self.loadb(addr+1) << 8)
+        self.lastAddr, self.lastValue = addr, val
         return val
 
-    def storew(self, segment:int, address:int, value:int):
-        self.storeb(segment,address,value)
-        self.storeb(segment,address+1,value>>8)
+    def storew(self, addr:int, value:int):
+        self.storeb(addr,value)
+        self.storeb(addr+1,value>>8)
 
 class Memory:
     def __init__(self,rom:bytearray):
@@ -52,37 +51,44 @@ class Memory:
         self.lastValue = 0
     
     def loadb(self,segment:int,address:int):
-        if segment >= 0xF000:
-            val = self.rom.loadb(segment-0xF000,address)
+        addr = (segment << 4) + address
+        if addr >= 0xF0000:
+            val = self.rom.loadb(addr&0xFFFF)
         else:
-            val = self.ram.loadb(segment,address)
-        self.lastAddr, self.lastValue = address, val
+            val = self.ram.loadb(addr)
+        self.lastAddr, self.lastValue = addr, val
         return val
 
-    def loadw(self, segment:int, address:int):
-        if segment >= 0xF000:
-            val = self.rom.loadw(segment-0xF000,address)
+    def loadw(self,segment:int,address:int):
+        addr = (segment << 4) + address
+        if addr >= 0xF0000:
+            val = self.rom.loadw(addr&0xFFFF)
         else:
-            val = self.ram.loadw(segment,address)
-        self.lastAddr, self.lastValue = address, val
+            val = self.ram.loadw(addr)
+        self.lastAddr, self.lastValue = addr, val
         return val
 
     def loadbs(self,segment:int,address:int):
-        val = self.ram.loadb(segment,address)
-        self.lastAddr, self.lastValue = address, val
+        addr = (segment << 4) + address
+        val = self.ram.loadb(addr)
+        self.lastAddr, self.lastValue = addr, val
         return val
+
     def loadws(self,segment:int,address:int):
-        val = self.ram.loadw(segment,address)
-        self.lastAddr, self.lastValue = address, val
+        addr = (segment << 4) + address
+        val = self.ram.loadw(addr)
+        self.lastAddr, self.lastValue = addr, val
         return val
 
     def storeb(self,segment:int,address:int,value:int):
-        self.ram.storeb(segment,address,value)
-        self.lastAddr, self.lastValue = address, value
+        addr = (segment << 4) + address
+        self.ram.storeb(addr,value)
+        self.lastAddr, self.lastValue = addr, value
 
     def storew(self,segment:int,address:int,value:int):
-        self.ram.storew(segment,address,value)
-        self.lastAddr, self.lastValue = address, value
+        addr = (segment << 4) + address
+        self.ram.storew(addr,value)
+        self.lastAddr, self.lastValue = addr, value
     
     def lastAccess(self):
         return (self.lastAddr, self.lastValue)

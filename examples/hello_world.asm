@@ -1,6 +1,6 @@
 ; Hello World program in miniArch assembly
 
-.org 0x7c00
+.offset 0x7c00
 
 func print {
     mov bx, msg

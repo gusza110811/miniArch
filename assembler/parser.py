@@ -289,15 +289,16 @@ class Transformer(t):
 
     class org(datagen):
         def collect(self, context):
-            context.inc_pc(self.children[0].eval(context) - context.get_pc())
-    
-    class align(datagen):
-        def collect(self, context):
             length = self.children[0].eval(context) - context.get_pc()
             context.inc_pc(length)
             self.out = b"\0" * length
         def emit(self):
             return self.out
+    
+    class offset(datagen):
+        def collect(self, context):
+            offset = self.children[0].eval(context)
+            context.offset = offset
 
     class Parameter(Branch):pass
 
@@ -389,7 +390,7 @@ class Transformer(t):
             name = self.name.eval()
 
             context.set(name,self.val.eval(context))
-        
+
     class labeldef(codegen):
         def __init__(self, value):
             super().__init__(value)

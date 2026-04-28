@@ -3,6 +3,7 @@ class Context:
         self.parent = parent
         self.root = parent is None
         self.pc = 0
+        self.offset = 0
         self.data = {}
     
     def inc_pc(self, n=1):
@@ -18,7 +19,7 @@ class Context:
             return self.parent.get_pc()
     
     def add_label(self, name:str):
-        self.set(name, self.get_pc())
+        self.set(name, self.get_pc()+self.offset)
 
     def get(self, key:str):
         try:

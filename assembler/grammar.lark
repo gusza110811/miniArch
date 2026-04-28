@@ -32,8 +32,8 @@ labeldef: IDENTIFIER ":"
     | ".double" [expr] -> double
     | ".quad" [expr] -> quad
     | ".zero" [expr] -> zero
-    | ".org" expr "\n" -> org
-    | ".align" expr -> align
+    | ".org" expr -> org
+    | ".offset" expr -> offset
     | "export" (constantdef|labeldef|code_block) -> exportdef
     | "export" IDENTIFIER ["->" IDENTIFIER] _NEWLINE -> export
 
