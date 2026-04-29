@@ -110,18 +110,11 @@ func read {
 func print {
     pusha
     mov dx, 0xffff
-    mov cx, '\r'
     loop:
         mov ax, [b bx]
         cmp ax, 0
         jz done
         add bx, 1
-        cmp ax, '\n'
-        jz lfcrlf
-        out dx, ax
-        jmp loop
-    lfcrlf:
-        out dx, cx
         out dx, ax
     jmp loop
 
@@ -135,11 +128,11 @@ func print {
     ; if ds = E800
     ; 32k of space for rw data, and 32k for ro data
     export start_msg:
-        .asciiz "MiniArch BIOS\n\n\n"
+        .asciiz "MiniArch BIOS\r\n\r\n\r\n"
     export nodisk_err:
-        .asciiz "No disks found\n"
+        .asciiz "No disks found\r\n"
     export diskfail_err:
-        .asciiz "Failed to load boot sector\n"
+        .asciiz "Failed to load boot sector\r\n"
 }
 
 .org 0xFFF0

@@ -6,6 +6,9 @@ class Context:
         self.offset = 0
         self.data = {}
     
+    def __repr__(self):
+        return ("root" if self.root else repr(self.parent)) + f">Context({self.offset})"
+    
     def inc_pc(self, n=1):
         if self.root:
             self.pc += n

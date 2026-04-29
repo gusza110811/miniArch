@@ -123,7 +123,7 @@ class Transformer(t):
 
     class scope(codegen):
 
-        def eval(self, context, mode:typing.Literal["code","data"]="data"):
+        def eval(self, context:Context, mode:typing.Literal["code","data"]="data"):
             self.context = Context(context)
             self.mode = mode
 
@@ -140,6 +140,7 @@ class Transformer(t):
 
             return self.context
         def collect(self, context):
+            self.context.offset = context.offset
             for item in self.children:
                 item.collect(self.context)
         
@@ -186,7 +187,7 @@ class Transformer(t):
         def eval(self, context):
             self.commandname = self.command.eval()
         def collect(self, context):
-            self.position = context.get_pc()
+            self.position = context.get_pc() + context.offset
             processed_args = []
 
             for child in self.args:
@@ -289,7 +290,7 @@ class Transformer(t):
 
     class org(datagen):
         def collect(self, context):
-            length = self.children[0].eval(context) - context.get_pc()
+            length = self.children[0].eval(context) - context.get_pc() + context.offset
             context.inc_pc(length)
             self.out = b"\0" * length
         def emit(self):
