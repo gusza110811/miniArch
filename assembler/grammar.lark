@@ -27,6 +27,7 @@ labeldef: IDENTIFIER ":"
 
 ?directive: ".ascii" STRING -> text
     | ".asciiz" STRING -> text_nulterm
+    | ".bytes" expr* -> bytes
     | ".byte" [expr] -> byte
     | ".word" [expr] -> word
     | ".double" [expr] -> double
@@ -35,7 +36,7 @@ labeldef: IDENTIFIER ":"
     | ".org" expr -> org
     | ".offset" expr -> offset
     | "export" (constantdef|labeldef|code_block) -> exportdef
-    | "export" IDENTIFIER ["->" IDENTIFIER] _NEWLINE -> export
+    | "export" IDENTIFIER ["->" IDENTIFIER] -> export
 
 ?expr: bitwise_or
 
@@ -69,10 +70,12 @@ labeldef: IDENTIFIER ":"
     | literal
     | symbol
 
-literal: BINARY
-    | OCTAL
-    | HEX
-    | DECIMAL
+literal: DECIMAL
+    | "0o" OCTAL
+    | "0x" HEX
+    | HEX "h"
+    | "0b" BINARY
+    | BINARY "b"
     | CHAR
 
 symbol: IDENTIFIER
@@ -103,9 +106,9 @@ ADDR_SIZE: "b"|"w"
 
 SIGN: "+"|"-"
 
-HEX: /0x[0-9a-fA-F_]+/
-OCTAL: /0o[0-7_]+/
-BINARY: /0b[01_]+/
+HEX: /[0-9a-fA-F_]+/
+OCTAL: /[0-7_]+/
+BINARY: /[01_]+/
 DECIMAL: /[0-9_]+/
 STRING: ESCAPED_STRING
 IDENTIFIER: /[a-zA-Z_][a-zA-Z0-9_]*/

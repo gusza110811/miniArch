@@ -231,8 +231,34 @@ class Transformer(t):
         def emit(self):
             return self.text.encode('utf-8')
     
+    class bytes(datagen):
+        children:list[Transformer.expr]
+        def __repr__(self):
+            return f".bytes {self.children}"
+        def collect(self, context):
+            self.out = bytearray()
+            for child in self.children:
+                value = child.eval(context)
+                if value > 255:
+                    raise ParseErr(f"{value} does not fit in 8 bit",
+                        child.get_first_token().line,
+                        child.get_first_token().column,
+                        child.get_last_token().end_column
+                    )
+                elif value < 0:
+                    raise ParseErr(f"signed number not supported",
+                        child.get_first_token().line,
+                        child.get_first_token().column,
+                        child.get_last_token().end_column
+                    )
+                self.out.append(value)
+                context.inc_pc(1)
+            return self.out
+        def emit(self):
+            return self.out
+
     class byte(datagen):
-        value:Transformer.Leaf
+        value:Transformer.expr
         def __repr__(self):
             return f".byte {self.value}"
         def collect(self, context):
@@ -451,6 +477,7 @@ class Transformer(t):
                 self.rhs = value[1]
             else:
                 self.rhs = value[0]
+        def eval(self,context) -> int:pass
 
     class or_op(expr):
         def __repr__(self):
@@ -592,13 +619,13 @@ class Transformer(t):
             return int(self.value)
     class BINARY(Leaf):
         def eval(self):
-            return int(self.value[2:],base=2)
+            return int(self.value,base=2)
     class OCTAL(Leaf):
         def eval(self):
-            return int(self.value[2:],base=8)
+            return int(self.value,base=8)
     class HEX(Leaf):
         def eval(self):
-            return int(self.value[2:],base=16)
+            return int(self.value,base=16)
     
     class ADDR_SIZE(DECIMAL):
         def eval(self):
