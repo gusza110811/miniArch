@@ -121,19 +121,22 @@ class Mov(Instruction):
                 out.append(descriptor)
                 out.extend(offset.to_bytes(2,'little'))
             elif srcT == IndirectDereference:
-                base = src.value
+                base = src.base
+                segment = src.segment
                 offset:int = src.offset
                 if length == 0:
                     out.append(0x19)
                 else:
                     out.append(0x1B)
                 target = dest.value
-                if offset:
-                    descriptor = (target << 4) | (base+8)
+                if base == 0 and offset == 0:
+                    offset = None
+                if not offset is None:
+                    descriptor = (target << 4) | (segment + 8 + (4 * base))
                     out.append(descriptor)
                     out.extend(offset.to_bytes(2,'little',signed=True))
                 else:
-                    descriptor = (target << 4) | base
+                    descriptor = (target << 4) | segment
                     out.append(descriptor)
 
         elif destT == Dereference:

@@ -382,7 +382,7 @@ class Transformer(t):
             self.sign:Transformer.SIGN = value[3]
             self.offset:Transformer.expr = value[4]
         def __repr__(self):
-            return f"deref {self.base}:BX + {self.offset}"
+            return f"deref {self.segment}:{self.base} {"+" if self.sign == 0 else "-"} {self.offset}"
         def dry_eval(self):
             return parameter.IndirectDereference(0,0)
         def eval(self, context):
@@ -390,15 +390,17 @@ class Transformer(t):
                 size = self.size.eval()
             else:
                 size = None
-            if self.segment:
-                segment = self.segment.eval()
-            else:
-                segment = 1
             base = self.base.eval()
             if self.offset:
                 offset = self.offset.eval(context) * self.sign.eval()
             else:
                 offset = 0
+            if self.segment:
+                segment = self.segment.eval()
+            elif base == 0:
+                segment = 1
+            else:
+                segment = 2
             return parameter.IndirectDereference(segment,base,offset,size)
 
     class constantdef(codegen):

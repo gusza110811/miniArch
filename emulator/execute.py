@@ -47,6 +47,10 @@ class Executor:
                 seg = get(deref-4)
                 offset = fetchs(2)
                 addr = get(BX) + offset
+            elif deref < 0x10:
+                seg = get(deref-8)
+                offset = fetchs(2)
+                addr = get(BP) + offset
             else: raise OpcodeFault
             return seg, addr
 

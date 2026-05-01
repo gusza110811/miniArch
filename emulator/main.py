@@ -134,7 +134,7 @@ class Emulator:
     def dump(self):
         names = ["ax","bx","cx","dx",
                  "cs","ds","ss","es",
-                 "ip","sp","bp"]
+                 "sp","bp"]
         
         for idx,val in enumerate(self.registers):
             print(f"{names[idx]}: {val:4x}")

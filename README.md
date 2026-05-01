@@ -10,13 +10,19 @@ MiniArch is a custom 16-bit architecture project. includes an assembler for comp
 
 - **doc/**: Documentations.
 
-- **examples/**: Example assembly programs
+- **examples/**: Example programs
+
+- **rom-examples/**: Example ROM programs
+
+- **test-asm**: Test programs
+
+- **rom-test-asm/**: Test ROM programs
 
 ## Features
 
 - Custom 8086-like 16-bit instruction set.
     - Segmented memory access
-    - 17 Registers (4 + 4 + 2 + 4 + 3)
+    - 17 Registers
     - 3 Addressing modes
 - Assembler: Assemble assembly code to binary machine code.
 - Emulator: Runs the machine code.
@@ -25,11 +31,11 @@ MiniArch is a custom 16-bit architecture project. includes an assembler for comp
 
 1. **Assembling Code**:
    - Run the assembler on an .asm file to generate machine code.
-   - Example: `python assembler/main.py example/hello_world.asm`
+   - Example: `python assembler/main.py examples/hello_world.asm`
 
 2. **Emulating Code**:
-   - Run the emulator on the generated binary.
-   - Example: `python emulator/main.py example/hello_world.bin`
+   - Run the emulator on the generated binary. (as disk image)
+   - Example: `python emulator/main.py --hda examples/hello_world.bin`
 
 Refer to `doc/isa.md` for the full instruction set and encoding details.
 

@@ -42,5 +42,5 @@ class IndirectDereference(BaseParameter):
         self.offset = offset
         self.length = length
     def __repr__(self):
-        return f"IndirectDereference(*{self.value}:BX + {self.offset})"
+        return f"IndirectDereference({self.value}:{self.base} + {self.offset})"
 
