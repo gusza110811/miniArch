@@ -75,7 +75,7 @@ class Mov(Instruction):
         if srcL != None and destL != None and srcL != destL and srcT != Register and destT != Register:
             return Err("conflicting data length",0,f"{datalen.index(destL)} vs {datalen.index(srcL)}")
 
-        length = destL or srcL
+        length = destL if not destL is None else srcL
 
         if length is None:
             if destT == Register:
