@@ -1,3 +1,5 @@
+# this thing tests if the pipeline works
+# whether it works correctly or not is still manual
 import os
 import subprocess
 import sys

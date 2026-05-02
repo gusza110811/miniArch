@@ -22,6 +22,7 @@ class Instructions(enum.Enum):
     ldw  = 0x1B
     inp  = 0x1C
     out  = 0x1D
+    lea  = 0x1E
 
     # arithmetic & logic (updates Z/C/N flags)
     add  = 0x20

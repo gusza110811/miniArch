@@ -107,6 +107,12 @@ class Executor:
                 value = io.read(get(source))
                 set(dest,value)
 
+            case insts.lea:
+                seg,addr = getOffset(source)
+                realaddr = (seg << 4) + addr
+                dsaddr = (realaddr - (get(DS) << 4)) & 0xFFFF
+                set(dest,dsaddr)
+
             case insts.add:
                 set(dest,get(dest)+get(source))
             case insts.addi4:

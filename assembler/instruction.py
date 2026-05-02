@@ -182,6 +182,79 @@ class Mov(Instruction):
         return Err("not implemented",0,f"{destT} and {srcT} pair is not implemented")
 register("mov",Mov)
 
+class Lea(Instruction):
+    def get(self, pc, size=2):
+        countcmp = self.check_count(2)
+        if countcmp:
+            return Err(("not enough" if countcmp == 1 else "too many") + " parameter",-1,f"expected 2, got {len(self.args)}")
+
+        dest = self.args[0]
+        src = self.args[1]
+        destval = dest.value
+        srcval = src.value
+        destT = dest.__class__
+        srcT = src.__class__
+
+        srcL = src.length
+        destL = dest.length
+        length = None
+
+        datalen = list("bwdq")
+
+        if srcL != None and destL != None and srcL != destL and srcT != Register and destT != Register:
+            return Err("conflicting data length",0,f"{datalen.index(destL)} vs {datalen.index(srcL)}")
+
+        length = destL if not destL is None else srcL
+
+        if length is None:
+            if destT == Register:
+                length = dest.default_size
+            elif srcT == Register:
+                length = src.default_size
+
+        if length is None:
+            return Err("ambiguous data length",0)
+
+        out = bytearray()
+
+        if destT == Immediate:
+            return Err("unsupported operand",0,"cannot save to immediate value")
+
+        if destT == Register:
+            if srcT == Dereference:
+                out.append(0x1E)
+                base = src.base
+                offset = src.value
+                target = dest.value
+                descriptor = (target << 4) | (base+4)
+                out.append(descriptor)
+                out.extend(offset.to_bytes(2,'little'))
+            elif srcT == IndirectDereference:
+                base = src.base
+                segment = src.segment
+                offset:int = src.offset
+                out.append(0x1E)
+                target = dest.value
+                if base == 0 and offset == 0:
+                    offset = None
+                if not offset is None:
+                    descriptor = (target << 4) | (segment + 8 + (4 * base))
+                    out.append(descriptor)
+                    out.extend(offset.to_bytes(2,'little',signed=True))
+                else:
+                    descriptor = (target << 4) | segment
+                    out.append(descriptor)
+            else:
+                return Err("invalid operand",1,"source must be an address")
+        else:
+            return Err("invalid operand",0,"dest must be a register")
+
+        if out:
+            return bytes(out)
+
+        return Err("not implemented",0,f"{destT} and {srcT} pair is not implemented")
+register("lea",Lea)
+
 class Add(Instruction):
     def get(self, pc, size=2):
         countcmp = self.check_count(2)
