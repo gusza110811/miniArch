@@ -16,7 +16,7 @@
 ; 0x04: query sector count
 ; 0x05: clear buffer
 
-func main {
+main {
     mov ax, 0xF800
     mov ds, ax
     ; check for disks
@@ -30,13 +30,13 @@ func main {
     jmp read
 }
 
-func no_disks {
+no_disks {
     mov bx, err_msg
     call print
     hlt
 }
 
-func read {
+read {
     mov bx, 0x0320
     mov ax, 0x05
     out bx, ax
@@ -58,7 +58,7 @@ func read {
 }
 
 ; bx = pointer to message
-func print {
+print {
     pusha
     mov dx, 0xffff
     mov cx, '\r'
@@ -85,6 +85,6 @@ err_msg:
     .asciiz "No disks found\n"
 
 .org 0xFFF0
-func reset {
+reset {
     jmpf 0xf000, main
 }

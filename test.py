@@ -8,17 +8,9 @@ import glob
 def run_command(cmd, description):
     print(f"  Running: {' '.join(cmd)}")
     try:
-        print('\033[0m',end="")
         result = subprocess.run(cmd, text=True, check=True)
         print(f"  OK {description} successful")
         return True
-    except subprocess.CalledProcessError as e:
-        print(f"  !! {description} FAILED with return code {e.returncode}")
-        if e.stdout:
-            print(f"    stdout: {e.stdout.strip()}")
-        if e.stderr:
-            print(f"    stderr: {e.stderr.strip()}")
-        return False
     except FileNotFoundError as e:
         print(f"  !! Command not found: {e}")
         return False

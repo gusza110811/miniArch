@@ -7,20 +7,12 @@ start: statement+
     | directive
     | code_block
     | labeldef
+    | instruction
     | _NEWLINE
 
-code_block: "func " IDENTIFIER code_scope
-
-?code_scope: "{" code_statement* "}" -> scope
+code_block: IDENTIFIER scope
 
 scope: "{" statement* "}"
-
-?code_statement: directive
-    | code_block
-    | instruction
-    | labeldef
-    | constantdef
-    | _NEWLINE
 
 constantdef: IDENTIFIER "=" expr
 labeldef: IDENTIFIER ":"

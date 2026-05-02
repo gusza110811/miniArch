@@ -1,5 +1,5 @@
 ; test the bitwise instructions
-func test {
+test {
     mov ax, 0xAA
     and ax, 0xCC
     mov bx, 0xCC
@@ -16,7 +16,7 @@ func test {
 }
 
 .org 0xFFF0
-func reset {
+reset {
     jmpf 0xF000, test
 }
 

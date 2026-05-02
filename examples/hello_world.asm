@@ -2,7 +2,7 @@
 
 .offset 0x7c00
 
-func print {
+print {
     mov bx, msg
     mov dx, 0x01
     loop:

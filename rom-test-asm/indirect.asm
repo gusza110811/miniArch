@@ -1,4 +1,4 @@
-func main {
+main {
     mov ds, cs
     mov bx, data
 
@@ -22,6 +22,6 @@ data:
 ; dx = beef
 
 .org 0xFFF0
-func reset {
+reset {
     jmpf 0xF000, 0
 }

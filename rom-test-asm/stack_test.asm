@@ -1,4 +1,4 @@
-func main {
+main {
     mov ax, 0x1108
     push ax
     pushb ax
@@ -17,6 +17,6 @@ func main {
 ; dx =   08
 
 .org 0xfff0
-func reset {
+reset {
     jmpf 0xf000, 0x0
 }

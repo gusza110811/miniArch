@@ -123,21 +123,11 @@ class Transformer(t):
 
     class scope(codegen):
 
-        def eval(self, context:Context, mode:typing.Literal["code","data"]="data"):
+        def eval(self, context:Context):
             self.context = Context(context)
-            self.mode = mode
 
             for child in self.children:
                 child.eval(self.context)
-                if mode == "code" and isinstance(child,Transformer.datagen):
-                    tokenf = child.get_first_token()
-                    tokenl = child.get_last_token()
-                    raise ParseErr("data directive inside a function",tokenf.line-1,tokenf.column-1,tokenl.column-1)
-                elif mode == "data" and isinstance(child,Transformer.instruction):
-                    tokenf = child.get_first_token()
-                    tokenl = child.get_last_token()
-                    raise ParseErr("instruction outside a function",tokenf.line-1,tokenf.column-1,tokenl.column-1)
-
             return self.context
         def collect(self, context):
             self.context.offset = context.offset
@@ -152,7 +142,7 @@ class Transformer(t):
         
         def __repr__(self):
             return "{\n  " + ";\n  ".join([repr(value) for value in self.children]) + "\n}"
-    
+
     class datagen(codegen):pass
 
     class code_block(codegen):
@@ -165,7 +155,7 @@ class Transformer(t):
             if self.name:
                 self.name = self.name.eval()
                 context.set(self.name,0x7FFF)
-            return self.scope.eval(context,"code")
+            return self.scope.eval(context)
         
         def collect(self,context):
             if self.name:

@@ -1,4 +1,4 @@
-func main {
+main {
     mov ax, 0xAEFE
     mov cx, ah
     mov dh, ax
@@ -6,7 +6,7 @@ func main {
 }
 
 .org 0xFFF0
-func reset {
+reset {
     jmpf 0xF000, main
 }
 ; expected end state

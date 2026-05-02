@@ -1,6 +1,6 @@
 .offset 0x7c00
 
-func main {
+main {
     mov bx, string
     call atoi
     hlt
@@ -8,7 +8,7 @@ func main {
 
 ; bx = pointer to string
 ; ax = result
-func atoi {
+atoi {
     push bx
     push dx
     loop:
@@ -29,7 +29,7 @@ func atoi {
 }
 
 ; multiplies ax by 10
-func mul10 {
+mul10 {
     push dx
 
     shl ax, 1

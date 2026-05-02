@@ -1,6 +1,6 @@
 dbgconsole = 0xffff
 
-func main {
+main {
     mov [w 2*4], ax
     mov [w 2*4 + 2], cs
     mov ax, test
@@ -8,7 +8,7 @@ func main {
     hlt
 }
 
-func test {
+test {
     mov bx, dbgconsole
     mov ax, '!'
     out bx, ax
@@ -16,6 +16,6 @@ func test {
 }
 
 .org 0xfff0
-func reset {
+reset {
     jmpf 0xf000, 0x0
 }

@@ -1,6 +1,6 @@
 .offset 0x7c00
 
-func main {
+main {
     mov ds, 0x0700
 
     lea ax, [cs:0x7c00]

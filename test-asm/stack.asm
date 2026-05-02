@@ -1,6 +1,6 @@
 .offset 0x7c00
 
-func main {
+main {
     mov ax, 0x15
     push ax
     mov ax, 0x25
