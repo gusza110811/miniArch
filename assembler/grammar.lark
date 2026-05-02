@@ -101,7 +101,7 @@ OCTAL: /0o[0-7_]+/
 BINARY: /0b[01_]+/
 DECIMAL: /[0-9_]+/
 STRING: ESCAPED_STRING
-IDENTIFIER: /(?!(func))/ /[a-zA-Z_][a-zA-Z0-9_]*/
+IDENTIFIER: /[a-zA-Z_][a-zA-Z0-9_]*/
 
 CHAR: "'" /.*/ "'"
 
