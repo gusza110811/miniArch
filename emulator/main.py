@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 from memory import Memory, IO
 import termmagic
 from execute import Executor, OpcodeFault

@@ -1,4 +1,4 @@
-const dbgconsole = 0xffff
+dbgconsole = 0xffff
 
 func main {
     mov [w 2*4], ax

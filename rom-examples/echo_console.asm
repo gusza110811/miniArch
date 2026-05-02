@@ -2,7 +2,7 @@
 ; this program reads characters from the input and echoes them back to the output.
 ; it assumes that the "terminal" does not send CRLF, but only CR or LF, and it will echo CRLF for both cases.
 
-const buffer = 0x1000
+buffer = 0x1000
 
 func init {
     mov bx, text

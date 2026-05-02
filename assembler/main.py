@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 import parser, constructor, color
 import os, sys
 import argparse
@@ -20,15 +21,14 @@ class Assembler:
             col = e.column -1 if e.column > 0 else -1
             msg = "unexpected character at line"
             match e.char:
-                #case "{":
-                #    msg = "unmatched braces"
+                case "{":
+                    msg = "unmatched braces"
                 case "\"":
                     msg = "unmatched quote"
                 case "'":
                     msg = "unmatched quote"
                 case "\n":
                     msg = "unexpected line break"
-            print(e.considered_tokens)
             print(color.fg.MAGENTA + f"{msg} {line+1} char {col+1}")
             print(color.RESET + "  "+codelns[line])
             print(color.fg.RED + "  "+" "*(col)+"^")
@@ -45,7 +45,7 @@ class Assembler:
         if tree is None:
             return
 
-        print("\n".join([repr(item) for item in tree.children]))
+        #print("\n".join([repr(item) for item in tree.children]))
         try:
             out = self.constructor.main(tree,filename)
         except parser.ParseErr as e:

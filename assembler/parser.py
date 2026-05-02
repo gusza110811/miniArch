@@ -60,7 +60,7 @@ class Transformer(t):
     class Leaf(Node):
         def __init__(self, token):
             self.value = token.value
-            self.token = token
+            self.token:lark.Token = token
         
         def eval(self):
             return self.value
@@ -329,17 +329,6 @@ class Transformer(t):
 
     class Parameter(Branch):pass
 
-    class register(Parameter):
-        def __init__(self, value):
-            super().__init__(value)
-        def __repr__(self):
-            return f"register {self.children[0]}"
-        
-        def dry_eval(self):
-            return parameter.Register(0)
-
-        def eval(self, context):
-            return parameter.Register(self.children[0].eval())
     class immediate(Parameter):
         def __repr__(self):
             return f"immediate {self.children[0]}"
@@ -350,11 +339,15 @@ class Transformer(t):
     class direct_addr(Parameter):
         def __init__(self, value):
             super().__init__(value)
-            self.size:Transformer.ADDR_SIZE = value[0]
+            self.size:Transformer.IDENTIFIER = value[0]
             self.base:Transformer.SEGMENT = value[1]
             self.addr:Transformer.expr = value[2]
             if self.size:
-                self.size = self.size.eval()
+                sizechar = self.size.eval()
+                if sizechar not in ["b","w"]:
+                    tok = self.size.get_first_token()
+                    raise ParseErr("invalid size",tok.line-1,tok.col-1,tok.end_column-1,"valid sizes are b and w")
+                self.size = ["b","w"].index(sizechar)
             else:
                 self.size = None
         def __repr__(self):
@@ -387,7 +380,7 @@ class Transformer(t):
             return parameter.IndirectDereference(0,0)
         def eval(self, context):
             if self.size:
-                size = self.size.eval()
+                size = ["b","w"].index(self.size.eval())
             else:
                 size = None
             base = self.base.eval()
@@ -402,6 +395,18 @@ class Transformer(t):
             else:
                 segment = 2
             return parameter.IndirectDereference(segment,base,offset,size)
+    
+    class register(Parameter):
+        def eval(self, context):
+            name = self.children[0].eval()
+            registers = ['ax','bx','cx','dx',
+                'cs','ds','ss','es',
+                'sp','bp','.','.',
+                'ah','bh','ch','dh'
+            ]
+
+            if name in registers:
+                return parameter.Register(registers.index(name.lower()))
 
     class constantdef(codegen):
         def __init__(self, value):
@@ -555,6 +560,7 @@ class Transformer(t):
             return f"symbol {self.children[0]}"
         def eval(self, context):
             name = self.children[0].eval()
+
             try:
                 return context.get(name)
             except KeyError:
@@ -574,10 +580,7 @@ class Transformer(t):
 
     class REGISTER(Leaf):
         def eval(self):
-            return ['ax','bx','cx','dx',
-                    'cs','ds','ss','es',
-                    'sp','bp','.','.',
-                    'ah','bh','ch','dh'].index(self.value.lower())
+            return self.value.lower()
     
     class SIGN(Leaf):
         def eval(self):
@@ -621,19 +624,17 @@ class Transformer(t):
             return int(self.value)
     class BINARY(Leaf):
         def eval(self):
-            return int(self.value,base=2)
+            return int(self.value[2:],base=2)
     class OCTAL(Leaf):
         def eval(self):
-            return int(self.value,base=8)
+            return int(self.value[2:],base=8)
     class HEX(Leaf):
         def eval(self):
-            return int(self.value,base=16)
+            return int(self.value[2:],base=16)
     
-    class ADDR_SIZE(DECIMAL):
-        def eval(self):
-            return ["b","w","d","q"].index(self.value.lower())
-    
-    class statement(codegen):pass
+    class statement(codegen):
+        def __repr__(self):
+            return ""
     class code_statement(statement):pass
 
 
@@ -642,6 +643,7 @@ class Parser:
         self.grammar = open(os.path.join(__dir__,"grammar.lark")).read()
         self.parser = Lark(
             self.grammar,
+            parser="lalr",
         )
         self.transformer = Transformer()
     def parse(self, code:str, filename="<main>"):

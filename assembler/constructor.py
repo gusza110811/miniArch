@@ -12,7 +12,7 @@ class Constructor:
         contexts = ast.eval(self.globals)
 
         ast.collect(self.globals)
-        print([context.data for context in contexts])
-        print(self.globals.data)
+        #print([context.data for context in contexts])
+        #print(self.globals.data)
 
         return ast.emit()
