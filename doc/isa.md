@@ -214,7 +214,7 @@ This instruction has 2 forms:
 Load effective address.
 
 - Encoded as `0x1E`.
-- Loads the offset component of a memory address operand into the destination register.
+- Loads the offset component of a memory address operand relative to DS:0 into the target register.
 - Use this to obtain the address of a memory location without performing a memory load.
 
 ### ADD
