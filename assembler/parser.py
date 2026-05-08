@@ -20,8 +20,9 @@ class ParseErr(Exception):
 __dir__ = os.path.dirname(__file__)
 
 class Transformer(t):
-    def __init__(self, visit_tokens = True):
+    def __init__(self, visit_tokens = True, allow_link=False):
         super().__init__(visit_tokens)
+        self.allow_link = allow_link
 
     class Node:
         def __init__(self, value):pass
@@ -629,13 +630,13 @@ class Transformer(t):
 
 
 class Parser:
-    def __init__(self):
+    def __init__(self,linkable=False):
         self.grammar = open(os.path.join(__dir__,"grammar.lark")).read()
         self.parser = Lark(
             self.grammar,
             parser="lalr",
         )
-        self.transformer = Transformer()
+        self.transformer = Transformer(allow_link=linkable)
     def parse(self, code:str, filename="<main>"):
         transformer = self.transformer
         parser = self.parser

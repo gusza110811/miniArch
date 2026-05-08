@@ -7,8 +7,9 @@ import lark.exceptions
 __dir__ = os.path.dirname(__file__)
 
 class Assembler:
-    def __init__(self):
-        self.parser = parser.Parser()
+    def __init__(self,linkable=False):
+        self.linkable = linkable
+        self.parser = parser.Parser(linkable)
         self.constructor = constructor.Constructor()
 
     def main(self, code:str, filename="<main>"):
@@ -73,6 +74,7 @@ if __name__ == "__main__":
 
     argparser.add_argument("source",help="source assembly")
     argparser.add_argument("--output","-o",nargs="?",help="output file",default=None)
+    argparser.add_argument("--linkable","-l",help="generate linkable object file instead of executable binary",action="store_true")
 
     args = argparser.parse_args()
 
@@ -87,7 +89,7 @@ if __name__ == "__main__":
 
     code = open(source).read()
 
-    assembler = Assembler()
+    assembler = Assembler(args.linkable)
     out = assembler.main(code,source)
     if out:
         with open(dest,"wb") as file:
