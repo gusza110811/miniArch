@@ -167,13 +167,13 @@ mov ax, [b BP]          ; Byte-sized access from BP
 Access memory at the address in `BX` or `BP` plus an offset:
 
 ```asm
-mov ax, [BX + 0x10]     ; Load from BX + 16
-mov ax, [BP - 4]        ; Load from BP - 4
-mov ax, [DS:BX + 100]   ; With custom segment
-mov ax, [w CS:BX + 0x20]; Word-sized access with offset
+mov ax, [BX + 0x10]     ; Load from DS:BX with offset 16
+mov ax, [BP - 4]        ; Load from SS:BP with offset -4
+mov ax, [SS:BX + 100]   ; Load from SS:BX with offset 100
+mov ax, [w CS:BX + 0x20]; Load from CS:BX with offset 32
 ```
 
-**Syntax:** `[` [`SEGMENT` `:` ] (`BX` | `BP`) `±` `offset` `]`
+**Syntax:** `[` [`SEGMENT` `:` ] (`BX` | `BP`) `+`|`-` `offset` `]`
 
 ---
 
@@ -191,7 +191,8 @@ All MiniArch instructions are supported. Instructions with multiple variants (e.
 
 #### Data Movement
 
-- `mov` - Move between registers
+- `mov` - Move between registers, memory, and immediate values
+- `lea` - Load effective address into a register
 - `ldi4`, `ldi8`, `ldi16` - Load immediate values
 - `ld`, `ldb`, `ldw` - Load from memory
 - `st`, `stb`, `stw` - Store to memory
@@ -222,9 +223,7 @@ All MiniArch instructions are supported. Instructions with multiple variants (e.
 #### Shift Operations
 
 - `shl` - Shift left
-- `shli4` - Shift left by 4-bit immediate
 - `shr` - Shift right
-- `shri4` - Shift right by 4-bit immediate
 
 #### Control Flow
 
@@ -238,23 +237,22 @@ All MiniArch instructions are supported. Instructions with multiple variants (e.
 - `jmpf` - Far jump to different segment
 - `callf` - Far call to different segment
 - `retf` - Far return from different segment
-- `int` - Jump to subroutine (also uses retf)
 
-#### Stack Operations
+#### Stack and Flags
 
-- `push`, `pushw`, `pushb` - Push to stack
-- `pop`, `popw`, `popb` - Pop from stack
-- `pusha` - Push AX, BX, CX, DX
-- `popa` - Pop to DX, CX, BX, AX
-- `pushf` - Push flags
-- `popf` - Pop flags
+- `push`, `pushw`, `pushb` - Push register values onto the stack
+- `pop`, `popw`, `popb` - Pop values from the stack into registers
+- `pushf`, `popf` - Push and pop the full flag byte
+- `pusha`, `popa` - Push and pop `AX`, `BX`, `CX`, `DX`
+- `stz`, `stc`, `stn`, `sto`, `sti`, `sta` - Set individual flags
+- `clz`, `clc`, `cln`, `clo`, `cli`, `cla` - Clear individual flags
 
-#### Flag Operations
+#### I/O and System
 
-- `stz`, `stc`, `stn`, `sto`, `sti` - Set individual flags
-- `sta` - Set all flags
-- `clz`, `clc`, `cln`, `clo`, `cli` - Clear individual flags
-- `cla` - Clear all flags
+- `out` - Write a register value to an I/O port register
+- `in` / `inp` - Read a value from an I/O port into a register
+- `int` - Call a BIOS interrupt vector
+- `halt` / `hlt` - Stop execution
 
 #### Miscellaneous
 
@@ -323,21 +321,21 @@ Anonymous scopes can organize data:
 Constants define named values that can be used throughout the assembly:
 
 ```asm
-const BUFFER_SIZE = 256
-const MAX_ITEMS = 0x100
+BUFFER_SIZE = 256
+MAX_ITEMS = 0x100
 
 mov cx, BUFFER_SIZE
 ```
 
-**Syntax:** [`const`] `IDENTIFIER` `=` `expression`
+**Syntax:** `IDENTIFIER` `=` `expression`
 
 Constants are evaluated at assembly time and can use any expression with operators:
 
 ```asm
-const PAGE_SIZE = 0x1000
-const PAGES = 16
-const TOTAL_SIZE = PAGE_SIZE * PAGES   ; = 0x10000
-const MASK = ~0xFF                      ; Bitwise NOT
+PAGE_SIZE = 0x1000
+PAGES = 16
+TOTAL_SIZE = PAGE_SIZE * PAGES   ; = 0x10000
+MASK = ~0xFF                      ; Bitwise NOT
 ```
 
 ### Expression Operators
@@ -364,6 +362,20 @@ const ADDR = (0x10 + 0x20) * 0x100 & 0xFFFF
 ---
 
 ## Data Directives
+
+The assembler supports several data directives for embedding data into the output binary.
+
+- `.ascii` "string" - write a string without a terminating zero
+- `.asciiz` "string" - write a null-terminated string
+- `.byte` expr - write a single byte value
+- `.bytes` expr* - write one or more bytes
+- `.word` expr - write a 16-bit value
+- `.double` expr - write a 32-bit value
+- `.quad` expr - write a 64-bit value
+- `.zero` expr - allocate zero-initialized bytes
+- `.org` expr - set the current assembly location counter
+- `.offset` expr - change the active address offset for scalars and labels
+- `export` identifier / `export` label: / `export` function { ... } - expose symbols to parent scope
 
 Data directives reserve space and initialize values in memory.
 
@@ -412,28 +424,30 @@ If no expression is provided, the space is zero-initialized.
 
 ### Origin
 
-The `.org` directive sets the current position in memory:
+The `.org` directive sets the absolute assembly position in memory:
 
 ```asm
-.org 0x0000            ; Start at address 0x0000
+.org 0x0000            ; Start code at address 0x0000
     mov ax, 1
     
 .org 0x1000            ; Jump to address 0x1000
     mov bx, 2
 ```
 
-Memory between the previous position and the new position **is not** filled with zeros.
+Memory between the previous position and the new `.org` position filled with 0.
 
-### Alignment
+### Offset
 
-The `.align` directive sets the current position in memory similar to `.org`:
+The `.offset` directive shifts the active address offset within the current scope, useful for organizing data sections:
 
 ```asm
-.align 0x100           ; Start at address 0x0100
-.align 0x1000          ; Start at address 0x1000
+{
+    .offset 0x8000
+    ; Symbols defined here use 0x8000 as the base offset
+    message:
+        .asciiz "Hello"
+}
 ```
-
-Memory between the previous position and the new position **is** filled with zeros.
 
 ---
 
@@ -498,7 +512,7 @@ func print {
 msg:
 .asciiz "Hello, World!\r\n"
 
-.align 0xFFF0
+.org 0xFFF0
 func reset {
     jmpf 0xF000, 0
 }
@@ -526,7 +540,7 @@ func test {
     halt
 }
 
-.align 0xFFF0
+.org 0xFFF0
 func reset {
     jmpf 0xF000, test
 }
@@ -559,28 +573,28 @@ copy_done:
 ### Stack Operations
 
 ```asm
-func factorial {
-    ; Input: AX = n
-    ; Output: AX = n!
+func sum_array {
+    ; Input: BX = array start, CX = count
+    ; Output: AX = sum
     
     push bp
     mov bp, sp
     
-    cmp ax, 1
-    jle fact_base
+    xor ax, ax            ; AX = accumulator (sum)
+    xor dx, dx            ; DX = index
     
-    push ax               ; Save n
-    sub ax, 1             ; n - 1
-    call factorial        ; recursively call
-    pop bx                ; Restore n
-    mul ax, bx            ; n! = (n-1)! * n
+loop_start:
+    cmp dx, cx            ; Check if done
+    jge loop_end
     
-    jmp fact_return
+    mov bx, [BP - 4]      ; Load array base from stack
+    add bx, dx            ; Add index
+    add ax, [bx]          ; Add element to sum
     
-fact_base:
-    mov ax, 1             ; Base case: 1! = 1
+    add dx, 1             ; Increment index
+    jmp loop_start
     
-fact_return:
+loop_end:
     pop bp
     ret
 }
@@ -652,7 +666,7 @@ func main {
     ; Program starts here
 }
 
-.align 0xFFFF0              ; Reset vector location (physical: 0xFFFF0)
+.org 0xFFFF0              ; Reset vector location (physical: 0xFFFF0)
 func reset {
     jmpf 0x0000, main     ; Jump to main program
 }

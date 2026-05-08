@@ -48,33 +48,37 @@ Below are registers that cannot be used directly
     - 4 Interrupt Enable
 
 ### Addressing
-MiniArch has 3 addressing modes:
-- **Indirect**
-
-        SEGMENT : BX
+MiniArch supports address operands in three flavors:
 - **Direct**
 
         SEGMENT : immediate
+
+- **Indirect**
+
+        SEGMENT : BX
+  Accesses memory at the address stored in `BX`.
+
 - **Indexed**
 
         SEGMENT : BX + immediate
+        SEGMENT : BP + immediate
+  Accesses memory at a base register plus a signed offset.
 
 ---
 
 ## Instruction encoding
-This section explains the encoding of an instruction in MiniArch
+This section explains the encoding of a MiniArch instruction.
 
 ### Structure
-    [OPCODE 1 byte] [DEST/SRC 1 byte] [OPERAND 1-2 bytes]
-- OPCODE
-    - encode the instruction id
-- DEST/SRC (used in most instructions)
-    - encode the destination and source of the values
-- OPERAND (used in some case)
-    - usually encode the immediate value to be used by the operation
+    [OPCODE 1 byte] [DEST/SRC 1 byte] [OPERAND 0-2 bytes]
+
+- `OPCODE` identifies the instruction.
+- `DEST/SRC` encodes either registers or a memory address.
+- `OPERAND` is present only for instructions that require immediate data.
 
 ### Destination & Source encoding
-Most instruction use them to encode registers or to encode memory address to get/put the value
+Most instructions use the second byte to encode a destination and source pair,
+or to encode an addressing mode for memory access.
 
 #### Encoding Registers
     0: AX, BX, CX, DX
@@ -86,6 +90,7 @@ Most instruction use them to encode registers or to encode memory address to get
     0: CS:BX , DS:BX , SS:BX , ES:BX
     4: CS:imm, DS:imm, SS:imm, ES:imm
     8: CS:BX+imm , DS:BX+imm , SS:BX+imm , ES:BX+imm
+    8: CS:BP+imm , DS:BP+imm , SS:BP+imm , ES:BP+imm
 addressing with `imm` will take a 2-bytes operand
 
 ---
@@ -102,50 +107,54 @@ addressing with `imm` will take a 2-bytes operand
 
 ## Opcode Definition
 1.  [NOP](#nop)
-2.  [RMOW](#rmov)
+2.  [RMOV](#rmov)
 3.  [LDI](#ldi)
 4.  [ST](#st)
 5.  [LD](#ld)
-6.  [ADD](#add)
-7.  [ADDI](#addi)
-8.  [SUB](#sub)
-9.  [SUBI](#subi)
-10. [CMP](#cmp)
-11. [CMPI](#cmpi)
-12. [NEG](#neg)
-13. [AND](#and)
-14. [ANDI](#andi)
-15. [OR](#or)
-16. [ORI](#ori)
-17. [XOR](#xor)
-18. [XORI](#xori)
-19. [SHR](#shr)
-20. [SHRI4](#shri4)
-21. [SHL](#shl)
-22. [SHLI4](#shli4)
-23. [NOT](#not)
-24. [JMP](#jmp)
-25. [CALL](#call)
-26. [RET](#ret)
-27. [JMPF](#jmpf)
-28. [CALLF](#callf)
-29. [RETF](#retf)
-30. [PUSH](#push)
-31. [POP](#pop)
-32. [PUSHF](#pushf)
-33. [POPF](#popf)
-34. [PUSHA](#pusha)
-35. [POPA](#popa)
-36. [STZ](#stz)
-37. [STC](#stc)
-38. [STN](#stn)
-39. [STO](#sto)
-40. [CLZ](#clz)
-41. [CLC](#clc)
-42. [CLN](#cln)
-43. [CLO](#clo)
-44. [CLI](#cli)
-45. [CLA](#cla)
+6.  [LEA](#lea)
+7.  [ADD](#add)
+8.  [ADDI](#addi)
+9.  [SUB](#sub)
+10. [SUBI](#subi)
+11. [CMP](#cmp)
+12. [CMPI](#cmpi)
+13. [NEG](#neg)
+14. [AND](#and)
+15. [ANDI](#andi)
+16. [OR](#or)
+17. [ORI](#ori)
+18. [XOR](#xor)
+19. [XORI](#xori)
+20. [SHR](#shr)
+21. [SHRI4](#shri4)
+22. [SHL](#shl)
+23. [SHLI4](#shli4)
+24. [NOT](#not)
+25. [JMP](#jmp)
+26. [CALL](#call)
+27. [RET](#ret)
+28. [JMPF](#jmpf)
+29. [CALLF](#callf)
+30. [RETF](#retf)
+31. [INT](#int)
+32. [PUSH](#push)
+33. [POP](#pop)
+34. [PUSHF](#pushf)
+35. [POPF](#popf)
+36. [PUSHA](#pusha)
+37. [POPA](#popa)
+38. [STZ](#stz)
+39. [STC](#stc)
+40. [STN](#stn)
+41. [STO](#sto)
+42. [STI](#sti)
+43. [STA](#sta)
+44. [CLZ](#clz)
+45. [CLC](#clc)
+46. [CLN](#cln)
+47. [CLO](#clo)
+48. [CLI](#cli)
+49. [CLA](#cla)
 
 ### NOP
 Does nothing
@@ -157,30 +166,31 @@ This instruction has 3 forms, 2 of which are equivalent
     - has the DEST/SRC descriptor but does not do anything with it
 
 ### RMOV
-Transfer data between registers
+Transfer data between registers.
 
-- Encoded as `0x10`
-- `SRC` descriptor encode the source register of the value
-- `DEST` descriptor encode the target register to save the value to
+- Encoded as `0x10`.
+- `SRC` descriptor selects the source register.
+- `DEST` descriptor selects the destination register.
 
 ### LDI
-Load immediate value into a register
+Load an immediate value into a register.
 
-This instruction has 3 forms
+This instruction has 3 forms:
 - `ldi4` encoded as `0x11`
-    - Load value of `SRC` as immediate value into register `DEST`
+    - Uses the 4-bit source field as the immediate value.
+    - The source nibble is the immediate; the destination nibble selects the register.
 - `ldi8` encoded as `0x12`
-    - Has a 1-byte operand
-    - Load the operand into register `DEST`
+    - Uses a 1-byte operand after the descriptor.
+    - Loads the 8-bit value into the destination register.
 - `ldi16` encoded as `0x13`
-    - Has a 2-bytes operand
-    - Load the operand into register `DEST`
+    - Uses a 2-byte operand after the descriptor.
+    - Loads the 16-bit value into the destination register.
 
 ### ST
-Store value into memory
+Store a register value into memory.
 
-- `DEST` descriptor encode the address of memory to store the value to
-- `SRC` descriptor encode the source register
+- `DEST` descriptor selects the memory address operand.
+- `SRC` descriptor selects the source register.
 
 This instruction has 2 forms
 - `stb` encoded as `0x18`
@@ -191,14 +201,21 @@ This instruction has 2 forms
 ### LD
 Load value from memory
 
-- `DEST` descriptor encode the target register
-- `SRC` descriptor encode the address of memory to load the value from
+- `DEST` descriptor selects the target register.
+- `SRC` descriptor selects the memory address operand.
 
-This instruction has 2 forms
+This instruction has 2 forms:
 - `ldb` encoded as `0x19`
-    - Load the value at memory address `SRC` into `DEST` register
+    - Load the byte value at the memory address into `DEST`.
 - `ldw` encoded as `0x1B`
-    - Load the 2-bytes value at memory address `SRC` into `DEST` register
+    - Load the word value at the memory address into `DEST`.
+
+### LEA
+Load effective address.
+
+- Encoded as `0x1E`.
+- Loads the offset component of a memory address operand into the destination register.
+- Use this to obtain the address of a memory location without performing a memory load.
 
 ### ADD
 Add 2 registers
@@ -209,10 +226,10 @@ Add 2 registers
 - Update `Z`, `C` and `O` flag
 
 ### ADDI
-Add immediate value to a register
+Add an immediate value to a register.
 
-- `DEST` descriptor encode the target register to add to
-- Update `Z`, `C` and `O` flag
+- `DEST` descriptor selects the register to update.
+- Updates `Z`, `C`, and `O` flags.
 
 This instruction has 3 forms
 - `addi4` encoded as `0x21`
@@ -233,10 +250,10 @@ Subtract 2 registers
 - Update `Z`, `C`, `N` and `O` flag
 
 ### SUBI
-Subtract immediate value from a register
+Subtract an immediate value from a register.
 
-- `DEST` descriptor encode the target register to add to
-- Update `Z`, `C`, `N` and `O` flag
+- `DEST` descriptor selects the register to update.
+- Updates `Z`, `C`, `N`, and `O` flags.
 
 This instruction has 3 forms
 - `subi4` encoded as `0x25`
@@ -249,30 +266,30 @@ This instruction has 3 forms
     - Subtract the operand from register `DEST`
 
 ### CMP
-Compare 2 registers
+Compare two registers by subtracting the source from the destination and updating flags.
 
-- encoded as `0x28`
-- `DEST` descriptor encode the target register to subtract to
-- `SRC` descriptor encode the source register to subtract by
-- Doesnt save result but update flags
-- Update `Z`, `C`, `N` and `O` flag
+- Encoded as `0x28`
+- `DEST` descriptor selects the register that is compared against `SRC`.
+- `SRC` descriptor selects the register whose value is subtracted.
+- The result is not written back; only flags are updated.
+- Updates `Z`, `C`, `N`, and `O`.
 
 ### CMPI
-Compare immediate value to a register
+Compare a register against an immediate value.
 
-- `DEST` descriptor encode the target register to add to
-- Doesnt save result but update flags
-- Update `Z`, `C`, `N` and `O` flag
+- Encoded as `0x29`, `0x2A`, or `0x2B`.
+- `DEST` descriptor selects the register to compare.
+- The immediate is subtracted from the register value.
+- The result is not written back; only flags are updated.
+- Updates `Z`, `C`, `N`, and `O`.
 
-This instruction has 3 forms
+This instruction has 3 forms:
 - `cmpi4` encoded as `0x29`
-    - Subtract value of `SRC` as immediate value from register `DEST`
+    - Uses the 4-bit source field as the immediate value.
 - `cmpi8` encoded as `0x2A`
-    - Has a 1-byte operand
-    - Subtract the operand from register `DEST`
+    - Uses a 1-byte operand after the descriptor.
 - `cmpi16` encoded as `0x2B`
-    - Has a 2-byte operand
-    - Subtract the operand from register `DEST`
+    - Uses a 2-byte operand after the descriptor.
 
 ### NEG
 Negate a register
@@ -361,41 +378,55 @@ Perform bitwise NOT on a register
 - Encoded as `0x3A`
 
 ### JMP
-Pass control to another position within the same code segment
+Branch within the current code segment.
 
-- Encoded as `0x40`
-- Uses a 2-byte operand for target
+- Encoded as `0x40`.
+- The second descriptor byte encodes both the condition and the distance format.
+- `SRC` (low 4 bits) encodes the condition.
+- `DEST` (high 4 bits) encodes the distance type.
 
-- `SRC` encode condition
+Conditions:
 
-        0: On zero, On not zero, On carry, On not carry
-        4: On negative, On not negative, On signed overflow, On no signed overflow
-        F: Always
+        0: jump if Z == 0
+        1: jump if Z == 1
+        2: jump if C == 0
+        3: jump if C == 1
+        4: jump if N == 0
+        5: jump if N == 1
+        F: always
 
-- `DEST` encode distance
+Distance formats:
 
-        0: relative 8 bit
-        1: relative 16 bit
-        2: absolute 16 bit
+        0: relative 8-bit signed displacement
+        1: relative 16-bit signed displacement
+        2: absolute 16-bit address
+
+For relative jumps, the target address is computed from the current `IP`.
 
 ### CALL
-Call a subroutine within the same code segment
+Call a subroutine within the current code segment.
 
-- Encoded as `0x41`
-- Uses a 2-byte operand for target
-- Push `PC` to stack
+- Encoded as `0x41`.
+- The second descriptor byte encodes the call condition and the distance format.
+- `SRC` (low 4 bits) encodes the condition.
+- `DEST` (high 4 bits) encodes the distance type.
+- The return address is pushed to the stack before transferring control.
 
-- `SRC` encode condition
+Conditions:
 
-        0: On zero, On not zero, On carry, On not carry
-        4: On negative, On not negative, On signed overflow, On no signed overflow
-        F: Always
+        0: call if Z == 0
+        1: call if Z == 1
+        2: call if C == 0
+        3: call if C == 1
+        4: call if N == 0
+        5: call if N == 1
+        F: always
 
-- `DEST` encode distance
+Distance formats:
 
-        0: relative 8 bit
-        1: relative 16 bit
-        2: absolute 16 bit
+        0: relative 8-bit signed displacement
+        1: relative 16-bit signed displacement
+        2: absolute 16-bit address
 
 ### RET
 Return from subroutine
@@ -404,13 +435,13 @@ Return from subroutine
 - Pop from stack to get the previous `PC`
 
 ### JMPF
-Call a subroutine in a different code segment
+Far jump to a different code segment.
 - Encoded as `0x48`
-- Uses 1 2-byte operand for target segment
-- Uses 1 2-byte operand for target code position
+- Uses a 2-byte operand for target segment
+- Uses a 2-byte operand for target code position
 
 ### CALLF
-Pass control to another position in a different code segment
+Call a subroutine in a different code segment.
 - Encoded as `0x49`
 - Uses 1 2-byte operand for target segment
 - Uses 1 2-byte operand for target code position
@@ -423,12 +454,12 @@ Return out of subroutine called from a different segment
 - Pop from stack twice to get the previous `PC` and previous `CS`
 
 ### INT
-Call a interrupte handler
-- Encoded as `0x4B`
-- Uses a 1-byte operand for interrupt id
-- target segment = `[id * 4]`
-- target segment = `[id * 4 + 2]`
-- Push `CS` and `PC` to stack
+Invoke an interrupt handler.
+- Encoded as `0x4B`.
+- Uses a 1-byte operand for the interrupt vector number.
+- Reads the interrupt vector table at physical address `0x0000`.
+- Each vector entry is 4 bytes: offset at `id*4`, segment at `id*4 + 2`.
+- Pushes `CS` and `PC` to the stack before jumping to the handler.
 
 ### PUSH
 Push value to stack
