@@ -1,4 +1,4 @@
-func main {
+main {
     ; set up segment
     mov ax, 0xE800
     mov ds, ax
@@ -35,7 +35,7 @@ func main {
     jmpf 0, 0x7c00
 }
 
-func no_disks {
+no_disks {
     mov bx, nodisk_err
     call print
     hlt
@@ -43,7 +43,7 @@ func no_disks {
 
 ; 0x13 service
 ; dx = command
-func disk_srv {
+disk_srv {
 
     cmp dx, 1
     jz status
@@ -56,7 +56,7 @@ func disk_srv {
     retf
 
     ; ax -> status
-    func status {
+    status {
         push bx
         mov bx, 0x321
         in ax, bx
@@ -66,7 +66,7 @@ func disk_srv {
 
     ; bx <- start of 512 bytes region in memory to write to
     ; ax -> status (0 = success. 1 = fail)
-    func read {
+    read {
         push dx
 
         mov dx, 0x320
@@ -104,7 +104,7 @@ func disk_srv {
 
     ; ax = sector (lower word)
     ; bx = sector (upper word)
-    func sector {
+    sector {
         push dx
 
         mov dx, 0x322
@@ -123,14 +123,14 @@ func disk_srv {
 
 ; 0x14 service
 ; dx = command
-func serial_port_srv {
+serial_port_srv {
     cmp dx, 1
     jz sput_char
     cmp dx, 2
     jz sget_char
     retf
 
-    func sput_char {
+    sput_char {
         push bx
         mov bx, 0xFFFF
         out bx, ax
@@ -138,7 +138,7 @@ func serial_port_srv {
         retf
     }
 
-    func sget_char {
+    sget_char {
         push bx
         mov bx, 0xFFFF
         in ax, bx
@@ -148,7 +148,7 @@ func serial_port_srv {
 
 }
 
-func read {
+read {
     mov bx, 0x0320
     mov ax, 0x05
     out bx, ax
@@ -186,7 +186,7 @@ func read {
 }
 
 ; bx = pointer to message
-func print {
+print {
     pusha
     mov dx, 0xffff
     loop:
@@ -215,6 +215,6 @@ func print {
 }
 
 .org 0xFFF0
-func reset {
+reset {
     jmpf 0xf000, main
 }

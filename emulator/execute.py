@@ -34,6 +34,7 @@ class Executor:
         instcheck = [
             insts.add,insts.addi4,insts.addi8,insts.addi, insts.neg_,
             insts.sub,insts.subi4,insts.subi8,insts.subi,
+            insts.shr,insts.shri4,insts.shl,insts.shli4,
         ]
 
         def getOffset(deref:int):

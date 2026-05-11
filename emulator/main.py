@@ -152,13 +152,6 @@ class Emulator:
                 print()
                 items = 0
         items = 0
-        print("\nRom:")
-        for val in self.truncate_memory(self.memory.rom):
-            print(val,end="  ")
-            items += 1
-            if items == itemperline:
-                print()
-                items = 0
         print()
 
     def truncate_memory(self, mem, start: int = 0, end: int = None):

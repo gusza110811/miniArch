@@ -284,10 +284,10 @@ jmp start_address   ; Jump to the label
 
 ### Functions
 
-Functions are scoped blocks of code with a name:
+Functions are named scope blocks:
 
 ```asm
-func print {
+print {
     push bp
     mov bp, sp
     ; Function code here
@@ -296,7 +296,7 @@ func print {
 }
 ```
 
-**Syntax:** `func` `IDENTIFIER` `{` statements... `}`
+**Syntax:** `IDENTIFIER` `{` statements... `}`
 
 Functions provide:
 - **Naming** - Makes code more readable
@@ -305,11 +305,13 @@ Functions provide:
 
 ### Scopes
 
-Anonymous scopes can organize data:
+Anonymous scopes can organize data or code:
 
 ```asm
 {
+    export int:
     .word 0x6502
+    export string:
     .asciiz "Hello, World!\r\n"
 }
 ```
@@ -472,7 +474,7 @@ export VERSION = 0x0100
 ### Export Functions
 
 ```asm
-export func entry {
+export entry {
     jmp main
 }
 ```
@@ -494,7 +496,7 @@ export main -> _start   ; main is called as _start externally
 ```asm
 ; Hello World program in miniArch assembly
 
-func print {
+print {
     mov bx, msg
     mov ds, cs  
     mov dx, 0xFFFF        ; Serial port
@@ -513,7 +515,7 @@ msg:
 .asciiz "Hello, World!\r\n"
 
 .org 0xFFF0
-func reset {
+reset {
     jmpf 0xF000, 0
 }
 ```
@@ -521,7 +523,7 @@ func reset {
 ### Bitwise Operations
 
 ```asm
-func test {
+test {
     mov ax, 0xAA
     and ax, 0xCC          ; Bitwise AND with immediate
     
@@ -541,7 +543,7 @@ func test {
 }
 
 .org 0xFFF0
-func reset {
+reset {
     jmpf 0xF000, test
 }
 ```
@@ -552,7 +554,7 @@ func reset {
 const BUFFER_START = 0x2000
 const BUFFER_SIZE = 256
 
-func copy_buffer {
+copy_buffer {
     xor cx, cx            ; Counter = 0
     
 copy_loop:
@@ -573,7 +575,7 @@ copy_done:
 ### Stack Operations
 
 ```asm
-func sum_array {
+sum_array {
     ; Input: BX = array start, CX = count
     ; Output: AX = sum
     
@@ -662,12 +664,12 @@ mov cx, [SS:0x3000]
 The MiniArch CPU boots from address `FFFF:0000` (ROM), which should contain a far jump to the main program:
 
 ```asm
-func main {
+main {
     ; Program starts here
 }
 
 .org 0xFFFF0              ; Reset vector location (physical: 0xFFFF0)
-func reset {
+reset {
     jmpf 0x0000, main     ; Jump to main program
 }
 ```
