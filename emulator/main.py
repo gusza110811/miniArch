@@ -243,7 +243,10 @@ def writeTrace(filename:str, trace:list):
 
 if __name__ == "__main__":
     emulator = Emulator()
-    filedir = os.path.normpath(os.path.join(__file__,".."))
+    if os.path.islink(__file__):
+        __dir__ = os.path.dirname(os.readlink(__file__))
+    else:
+        __dir__ = os.path.dirname(__file__)
 
     argparser = argparse.ArgumentParser(
         prog="MiniArch Emulator",
@@ -270,8 +273,8 @@ if __name__ == "__main__":
             if os.path.isfile(attempt):
                 name = attempt
                 break
-            if os.path.isfile(os.path.join(filedir,attempt)):
-                name = os.path.join(filedir,attempt)
+            if os.path.isfile(os.path.join(__dir__,attempt)):
+                name = os.path.join(__dir__,attempt)
                 break
         if not name:
             sys.exit(f"No rom found, try passing a path to rom")

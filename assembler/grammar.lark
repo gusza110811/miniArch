@@ -86,7 +86,9 @@ symbol: IDENTIFIER
 // terminals
 COMMENT: ";" /[^\n]*/
 
-REGISTER.2: "ax"i | "bx"i | "cx"i | "dx"i
+REGISTER.2: REGISTER_INNER /(?![a-zA-Z_])/
+
+REGISTER_INNER: "ax"i | "bx"i | "cx"i | "dx"i
     | "cs"i | "ds"i | "ss"i | "es"i
     | "ip"i | "sp"i
     | "ah"i | "bh"i | "ch"i | "dh"i

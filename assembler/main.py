@@ -4,7 +4,10 @@ import os, sys
 import argparse
 import lark.exceptions
 
-__dir__ = os.path.dirname(__file__)
+if os.path.islink(__file__):
+    __dir__ = os.path.dirname(os.readlink(__file__))
+else:
+    __dir__ = os.path.dirname(__file__)
 
 class Assembler:
     def __init__(self,linkable=False):
