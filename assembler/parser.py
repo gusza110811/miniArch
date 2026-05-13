@@ -90,7 +90,7 @@ class Transformer(t):
         def collect(self, context:Context):
             prev_size = None
             size = 0
-            PASS = 2 # pass count per iteration
+            PASS = 3 # pass count per iteration
             while prev_size != size:
                 for idx in range(PASS):
                     context.pc = 0

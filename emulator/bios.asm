@@ -111,6 +111,7 @@ disk_srv {
 
         fail:
             mov ax, 1
+            pop dx
         retf
     }
 

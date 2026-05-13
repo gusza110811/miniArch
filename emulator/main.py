@@ -218,9 +218,27 @@ def writeTrace(filename:str, trace:list):
 
         )
     if len(trace) > 10000:
+        for item in trace[:10000]:
+            file.write(
+                (f"{item[0][0]:04X}:{item[0][1]:04X}" +
+                (">" if item[1] else " ") +
+                "{0}:{1:02X}".format(str(item[2]),item[3][0] if item[3] else 0).ljust(10) +
+                "{0:<5}".format(", ".join([f"{item:4X}" for item in item[3][1:]])) + " " +
+                (
+                    " ".join([f"{registerNames[idx]}={item[4][idx]:04X}" for idx in range(10)])
+                ) + " " +
+                (
+                    ('Z' if item[5][0] else "z") +
+                    ('C' if item[5][1] else "c") +
+                    ('N' if item[5][2] else 'n') +
+                    ('O' if item[5][3] else 'o') +
+                    ('I' if item[5][4] else 'i')
+                ) + " " #+
+                #("  " + f"{item[6][0]:05X} = {item[6][1]:X}" if item[6] else "")
+                ).rstrip() + "\n"
+            )
         file.write("\n...truncated...\n\n")
-    if len(trace) > 20000:
-        for item in trace[-10000:]:
+        for item in trace[max(10000-len(trace),-10000):]:
             file.write(
                 (f"{item[0][0]:04X}:{item[0][1]:04X}" +
                 (">" if item[1] else " ") +
