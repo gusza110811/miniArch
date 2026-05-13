@@ -21,6 +21,9 @@ main {
     jz no_disks
 
     ; add interrupt services
+    mov ax, disk_srv
+    mov [es:0x13 * 4], ax
+    mov [es:0x13 * 4 + 2], cs
     mov ax, serial_port_srv
     mov [es:0x14 * 4], ax
     mov [es:0x14 * 4 + 2], cs
@@ -45,12 +48,14 @@ no_disks {
 ; dx = command
 disk_srv {
 
-    cmp dx, 1
+    cmp dx, 0
     jz status
-    cmp dx, 2
+    cmp dx, 1
     jz read
+    cmp dx, 2
+    jz write
 
-    cmp dx, 3
+    cmp dx, 4
     jz sector
 
     retf
@@ -69,16 +74,23 @@ disk_srv {
     read {
         push dx
 
+        ; wait
+        wait1:
+            mov dx, 0x321
+            in ax, dx
+            cmp ax, 1
+        jz wait1
+
         mov dx, 0x320
         mov ax, 1
         out dx, ax
 
         ; wait
-        wait:
+        wait2:
             mov dx, 0x321
             in ax, dx
             cmp ax, 1
-        jz wait
+        jz wait2
 
         cmp ax, 0
         jnz fail
@@ -102,21 +114,59 @@ disk_srv {
         retf
     }
 
-    ; ax = sector (lower word)
-    ; bx = sector (upper word)
-    sector {
+    ; bx <- start of 512 bytes region in memory to read from
+    ; ax -> status (0 = success. 1 = fail)
+    write {
         push dx
 
-        mov dx, 0x322
+        ; wait
+        wait:
+            mov dx, 0x321
+            in ax, dx
+            cmp ax, 1
+        jz wait
+
+        mov dx, 0x320
+        mov ax, 2
         out dx, ax
-        mov dx, 0x323
-        out dx, ah
-        mov dx, 0x324
-        out dx, bx
-        mov dx, 0x325
-        out dx, bh
+
+        cmp ax, 0
+        jnz fail
+
+        ; write buffer
+        mov dx, 0x0327
+        mov cx, 512
+        write_loop:
+            mov ax, [b bx]
+            out dx, ax
+            add bx, 1
+            sub cx, 1
+        jnz write_loop
 
         pop dx
+        mov ax, 0
+        retf
+
+        fail:
+            mov ax, 1
+        retf
+    }
+
+    ; ax = sector (lower word)
+    ; cx = sector (upper word)
+    sector {
+        push bx
+
+        mov bx, 0x322
+        out bx, ax
+        mov bx, 0x323
+        out bx, ah
+        mov bx, 0x324
+        out bx, cx
+        mov bx, 0x325
+        out bx, ch
+
+        pop bx
         retf
     }
 }

@@ -19,14 +19,36 @@
 
 ## Services
 
+### Disk Service
+- interrupt id `0x13`
+- note: not all disk features have been implemented **yet**
+
+#### Get Status
+- `DX` = 0
+- status returned in `AX`
+
+#### Read Sector
+- `DX` = 1
+- `BX` <- start of 512 bytes buffer to store data read from sector
+- `AX` -> status (0 = success)
+
+#### Write Sector
+- `DX` = 2
+- `BX` <- start of 512 bytes data to write into sector
+- `AX` -> status (0 = success)
+
+#### Set Sector
+- `DX` = 4
+- `AX` <- lower 16 bit of sector
+- `CX` <- upper 16 bit of sector
+
 ### Serial Console Service
 - interrupt id `0x14`
-- `DX` determines command
 
 #### Put Character
 - `DX` = 1
-- Character to print in `AX`
+- `AX` <- character
 
 #### Get Character
 - `DX` = 2
-- Input character returned in `AX`
+- `AX` -> character

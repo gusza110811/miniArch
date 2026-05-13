@@ -16,7 +16,7 @@ def disable_buffering():
     tty.setcbreak(stdinfd, termios.TCSANOW)
 
 def disable_lfcrlf():
-    if sys.stdout.isatty():
+    if not sys.stdout.isatty():
         return
     newattr = termios.tcgetattr(sys.stdout.fileno())
     newattr[1] &= ~termios.ONLCR

@@ -195,7 +195,7 @@ class lbaDisk:
         if not disk:
             self.status.value = self.Status.invaliddevice.value
             return
-        sector = self.sector0.value + (self.sector1.value << 8) + (self.sector2.value << 16) + (self.sector3.value << 24)
+        sector = self.sector0.value | (self.sector1.value << 8) | (self.sector2.value << 16) | (self.sector3.value << 24)
 
         if sector*512 >= self.get_size(disk):
             self.status.value = self.Status.invalidsector.value
@@ -271,6 +271,7 @@ class IO:
     
     def write(self, portid:int, value:int):
         port = self.ports.get(portid)
+        #print(hex(portid),value,"\r",file=sys.stderr)
         if port:
             port.write(value&0xFF)
     

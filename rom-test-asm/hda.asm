@@ -7,7 +7,7 @@
 ; 0x0325: sector (octet 3)
 ; 0x0326: device number
 ; 0x0327: data
-; 0xffff: debug console (write only)
+; 0xffff: debug console
 
 ; disk commands:
 ; 0x01: read sector
