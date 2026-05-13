@@ -4,13 +4,13 @@
 
 buffer = 0x1000
 
-func init {
+init {
     mov bx, text
     mov ds, cs
     call print
 }
 
-func main {
+main {
     mov ds, 0
     mov bx, buffer
     call input
@@ -25,7 +25,7 @@ func main {
     ; bx = pointer to buffer
     ; returns:
     ; bx = pointer to end of string
-    export func input {
+    export input {
         mov dx, 0xffff
         in ax, dx
         cmp ax, 0
@@ -48,7 +48,7 @@ func main {
     }
 
     ; affect cx
-    func crlf {
+    crlf {
         mov cx, '\r'
         out dx, cx
         mov cx, '\n'
@@ -61,7 +61,7 @@ func main {
     }
 
     ; affect cx, bx--
-    func bksp {
+    bksp {
         mov cx, ' '
         out dx, ax
         out dx, cx
@@ -74,7 +74,7 @@ func main {
 ; crlf and bksp is out of scope
 
 ; bx = pointer to string
-func print {
+print {
     pusha
     mov dx, 0xffff
     mov cx, '\r'
@@ -101,7 +101,7 @@ text:   .asciiz "Echo Console\n"
 
 ; reset vector
 .org 0xFFF0
-func reset {
+reset {
     jmpf 0xF000, 0
 }
 

@@ -90,7 +90,7 @@ REGISTER.2: REGISTER_INNER /(?![a-zA-Z_])/
 
 REGISTER_INNER: "ax"i | "bx"i | "cx"i | "dx"i
     | "cs"i | "ds"i | "ss"i | "es"i
-    | "ip"i | "sp"i
+    | "sp"i | "bp"i
     | "ah"i | "bh"i | "ch"i | "dh"i
 
 SEGMENT.3: "cs"i | "ds"i | "ss"i | "es"i
