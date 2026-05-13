@@ -176,7 +176,7 @@ class Emulator:
                 if repeat_count > 0:
                     if not printed:
                         if repeat_count > 1:
-                            result.append(f"{repeat_count} times")
+                            result.append(f"{repeat_count:5} times")
                         else:
                             result.append("repeated   ")
                         printed = True
