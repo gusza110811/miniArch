@@ -88,11 +88,16 @@ class Transformer(t):
             return self.contexts
         
         def collect(self, context:Context):
-            PASS = 3
-            for idx in range(PASS):
-                context.pc = 0
-                for block in self.children:
-                    block.collect(context)
+            prev_size = None
+            size = 0
+            PASS = 2 # pass count per iteration
+            while prev_size != size:
+                for idx in range(PASS):
+                    context.pc = 0
+                    for block in self.children:
+                        block.collect(context)
+                prev_size = size
+                size = context.pc
         
         def emit(self):
             out = []
