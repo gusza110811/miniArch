@@ -68,9 +68,8 @@ def test():
 
     assembler = Assembler()
     out = assembler.main(test)
-    if out:
-        with open("main.bin","wb") as file:
-            file.write(out)
+    with open("main.bin","wb") as file:
+        file.write(out)
 
 if __name__ == "__main__":
     argparser = argparse.ArgumentParser()
@@ -94,7 +93,7 @@ if __name__ == "__main__":
 
     assembler = Assembler(args.linkable)
     out = assembler.main(code,source)
-    if out:
+    if not out is None:
         with open(dest,"wb") as file:
             file.write(out)
     else:
