@@ -1,6 +1,0 @@
-[submodule "emulator"]
-	path = emulator
-	url = https://github.com/gusza110811/MiniArch-vm-py
-[submodule "assembler"]
-	path = assembler
-	url = https://github.com/gusza110811/MiniArch-as-py
