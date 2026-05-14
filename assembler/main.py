@@ -5,7 +5,11 @@ import argparse
 import lark.exceptions
 
 if os.path.islink(__file__):
-    __dir__ = os.path.dirname(os.readlink(__file__))
+    link = os.path.dirname(os.readlink(__file__))
+    if link.startswith("/"):
+        __dir__ = link
+    else:
+        __dir__ = os.path.join(os.path.dirname(__file__),link)
 else:
     __dir__ = os.path.dirname(__file__)
 
